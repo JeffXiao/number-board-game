@@ -16,5 +16,5 @@ Open `index.html` in a browser to play — no build step, no server needed.
 
 - Four difficulties: easy, medium, hard, expert (up to 11×11, numbers up to 150)
 - Sort the number bank, undo one step at a time, reset the round, pause, hints
-- Timer, background music, casino-style placement sound and a win jingle
+- Timer, a sound toggle for the casino-style placement sound and win jingle
 - A fresh random puzzle every time you open it

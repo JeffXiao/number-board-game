@@ -38,9 +38,11 @@
 
 - Show every button as an icon alone, with no text beside any icon.
 
-- Use a circular arrow for reset, a note for music, a pause icon that turns into a play icon while paused, a lightbulb for hints, a sort icon for sorting and a curved arrow for undo.
+- Give no icon button a highlight background or a dimmed state, and show a state change only through the icon graphic itself, such as a muted speaker or a play icon.
 
-- Keep the top bar as reset, music, pause and hint icons, and keep the sort and undo icons beside the number bank.
+- Use a circular arrow for reset, a speaker for sound, a pause icon that turns into a play icon while paused, a lightbulb for hints, a sort icon for sorting and a curved arrow for undo.
+
+- Keep the top bar as reset, sound, pause and hint icons, and keep the sort and undo icons beside the number bank.
 
 - Remove the new puzzle button from the top bar and keep it only in the completion popup and the 3 mistake popup.
 
@@ -48,27 +50,33 @@
 
 - Size numbers placed in cells to match the number tiles, and size the operator and equals symbols near 1.4 times the cell text.
 
-## Play sounds and music
+## Play sounds
 
 - Play a casino style placement sound on every placement, made of two chip clacks and one coin ding.
 
 - Play a cheerful win jingle of an ascending arpeggio and a bright major chord when the puzzle is complete.
 
-- Play a soft looped background music of slow C Am F G chords with bass and arpeggio, synthesized in the browser with no audio file.
+- Use a speaker button as the sound switch, on by default, and keep it controlling the placement sound and the win jingle together.
 
-- Start background music only when the player taps the music button, never on its own, and keep the sound effects playing even when the music is off.
+- Play no sound at all when the sound switch is off, and keep no background music in the game.
 
 ## Build and maintain the game
 
 - Keep the game as a static web artifact named 数学十字谜 with slug `shu-xue-shi-zi-mi`.
 
-- Keep `index.html` for structure and styles only, and keep all JavaScript in `assets/game.js` as one classic script with no modules, imports or exports.
+- Keep `index.html` for structure and styles only, and keep all JavaScript in `assets/js/game.js` as one classic script with no modules, imports or exports.
+
+- Keep the game script at `assets/js/game.js` because the static runtime only publishes `index.html` and files under `assets/`, so a top level `js/` folder cannot load.
+
+- Keep each function in `assets/js/game.js` to 15 lines or fewer, counting the whole function from its opening line to its closing brace and including inline event handlers; when a function grows past 15 lines, split part of it into a new helper function and have the original function call the helper instead.
+
+- Split functions only by extracting helpers — never change game behavior, wording, sounds or layout while splitting.
 
 - Change the game only through `artifact.edit` on that slug, passing the user request as `verbatim_request`.
 
 - Publish the public link again with `artifact.share` after a change, because the link keeps serving the last shared version until then.
 
-- Keep the GitHub copy in sync at `JeffXiao/number-board-game` on the `main` branch, with `index.html`, `assets/game.js` and `README.md`, and keep GitHub Pages on so the game plays at `https://jeffxiao.github.io/number-board-game/`.
+- Keep the GitHub copy in sync at `JeffXiao/number-board-game` on the `main` branch, with `index.html`, `assets/js/game.js` and `README.md`, and keep GitHub Pages on so the game plays at `https://jeffxiao.github.io/number-board-game/`.
 
 - Push local files only through the GitHub connector snapshot procedure in `/opt/hatch/connectors/github/references/snapshot-push.md`, using `/opt/hatch/bin/github push-files` with a NUL delimited manifest and the sync record beside the source directory.
 
