@@ -66,11 +66,11 @@
 
 - Keep the game as a static web artifact named 数学十字谜 with slug `shu-xue-shi-zi-mi`.
 
-- Keep `index.html` for structure and styles only, and keep all JavaScript in `assets/js/game.js` as one classic script with no modules, imports or exports.
+- Keep `index.html` for structure and styles only, and keep all JavaScript in `js/game.js` as one classic script with no modules, imports or exports.
 
-- Keep the game script at `assets/js/game.js` because the static runtime only publishes `index.html` and files under `assets/`, so a top level `js/` folder cannot load.
+- Keep the GitHub repo layout as `js/game.js`. The Muse artifact copy is served from `assets/js/game.js` instead because the artifact runtime only publishes `index.html` and files under `assets/`, so when pushing to GitHub, place the script at `js/game.js` and point `index.html` at `js/game.js`.
 
-- Keep each function in `assets/js/game.js` to 15 lines or fewer, counting the whole function from its opening line to its closing brace and including inline event handlers; when a function grows past 15 lines, split part of it into a new helper function and have the original function call the helper instead.
+- Keep each function in `game.js` to 15 lines or fewer, counting the whole function from its opening line to its closing brace and including inline event handlers; when a function grows past 15 lines, split part of it into a new helper function and have the original function call the helper instead.
 
 - Split functions only by extracting helpers — never change game behavior, wording, sounds or layout while splitting.
 
@@ -78,7 +78,7 @@
 
 - Publish the public link again with `artifact.share` after a change, because the link keeps serving the last shared version until then.
 
-- Keep the GitHub copy in sync at `JeffXiao/number-board-game` on the `main` branch, with `index.html`, `assets/js/game.js` and `README.md`, and keep GitHub Pages on so the game plays at `https://jeffxiao.github.io/number-board-game/`.
+- Keep the GitHub copy in sync at `JeffXiao/number-board-game` on the `main` branch, with `index.html`, `js/game.js` and `README.md`, and keep GitHub Pages on so the game plays at `https://jeffxiao.github.io/number-board-game/`.
 
 - Push local files only through the GitHub connector snapshot procedure in `/opt/hatch/connectors/github/references/snapshot-push.md`, using `/opt/hatch/bin/github push-files` with a NUL delimited manifest and the sync record beside the source directory.
 
