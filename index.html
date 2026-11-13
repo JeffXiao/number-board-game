@@ -274,6 +274,8 @@
         z-index: 5;
       }
       .overlay.show { display: flex; }
+      /* the reset confirmation sits above the pause / end overlays */
+      #resetConfirmOverlay { z-index: 7; }
       .overlay h2 { margin: 0; font-size: 26px; font-weight: 400; }
       .overlay p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
       .overlay .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
@@ -411,7 +413,7 @@
           <span><span class="label">提示</span><span class="val num" id="hints">0</span></span>
         </div>
         <div class="actions">
-          <button class="btn reset-btn" id="resetBtn" type="button" aria-label="重置本局，重新开始并重新计时" title="重置本局，重新开始并重新计时">
+          <button class="btn reset-btn" id="resetBtn" type="button" aria-label="重置本局，会先弹出确认" title="重置本局，会先弹出确认">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
           </button>
           <button class="btn sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="关闭放入数字的声音" title="关闭放入数字的声音">
@@ -435,7 +437,7 @@
         <button type="button" data-diff="expert" aria-pressed="false">专家</button>
       </div>
 
-      <p class="howto">点一个空格选中它，再点下方对应的数字牌填进去；也可以直接把数字牌拖进空格。横竖每一条算式都要成立——交叉的格子是两边共用的。加法和乘法交换两个数的位置也算对（5×7 和 7×5 都可以），除法的除数和商也可以互换（18÷9=2 和 18÷2=9 都可以）。放下一个数字不会马上判错：等一条算式凑齐、里面的数字彼此对不上时，才会标红提醒并计一次错误。填错的数字留在格子里让你自己改——可以把格子里的数字直接拖回下面的数字牌区，也可以拖到另一个空格换位置，或者点一下格子取回重填；把数字牌拖到已填的格子上可以直接替换。想反悔时，点「排序」右边的「上一步」，每点一次就退回最近的一步操作。错误满 3 次，本局就结束了。</p>
+      <p class="howto">点一个空格选中它，再点下方对应的数字牌填进去；也可以直接把数字牌拖进空格。横竖每一条算式都要成立——交叉的格子是两边共用的。加法和乘法交换两个数的位置也算对（5×7 和 7×5 都可以），除法的除数和商也可以互换（18÷9=2 和 18÷2=9 都可以）。放下一个数字不会马上判错：等一条算式凑齐、里面的数字彼此对不上时，才会标红提醒并计一次错误。填错的数字留在格子里让你自己改——可以把格子里的数字直接拖回下面的数字牌区，也可以拖到另一个空格换位置，或者点一下格子取回重填；把数字牌拖到已填的格子上可以直接替换。想反悔时，点「排序」右边的「上一步」，每点一次就退回最近的一步操作。错误满 3 次，本局就结束了。点右上角的重置图标不会马上清空：会先问你是不是真的要重置，点「是」才会清空这一局重新开始，点「否」就什么都不变，继续这一局。</p>
 
       <div class="board-shell" id="boardShell">
         <div class="board num" id="board" aria-label="数学十字谜棋盘"></div>
@@ -455,6 +457,15 @@
           <div class="row">
             <button class="btn" id="retryBtn" type="button">再试一次</button>
             <button class="btn primary" id="againBtn" type="button">换一题</button>
+          </div>
+        </div>
+
+        <div class="overlay" id="resetConfirmOverlay" role="alertdialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
+          <h2 id="resetConfirmTitle">真的要重置吗？</h2>
+          <p id="resetConfirmText">重置会清空这一局已经填好的数字，错误次数和用时也会重新开始。</p>
+          <div class="row">
+            <button class="btn" id="resetNoBtn" type="button">否</button>
+            <button class="btn primary" id="resetYesBtn" type="button">是</button>
           </div>
         </div>
       </div>

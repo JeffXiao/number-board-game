@@ -34,6 +34,8 @@
 
 - Disable the undo button when no step is left to undo.
 
+- Ask before resetting: tapping the reset icon never restarts the round at once — it opens an in-page confirmation asking whether the player really wants to reset, with a 是 (yes) button and a 否 (no) button. Reset the round only when the player taps 是; when they tap 否, close the dialog and leave the game completely untouched — board, mistakes, hints and elapsed time all stay as they were. Use the in-page dialog in the game's own overlay style, never the browser `confirm()`. While the confirmation is open, the timer waits and all other controls ignore input.
+
 ## Keep the buttons icon only
 
 - Show every button as an icon alone, with no text beside any icon.

@@ -266,6 +266,7 @@ var hintsEl = document.getElementById("hints");
 var progressEl = document.getElementById("progress");
 var pauseOverlay = document.getElementById("pauseOverlay");
 var endOverlay = document.getElementById("endOverlay");
+var resetConfirmEl = document.getElementById("resetConfirmOverlay");
 var endTitle = document.getElementById("endTitle");
 var endText = document.getElementById("endText");
 var pauseBtn = document.getElementById("pauseBtn");
@@ -293,6 +294,9 @@ function updateSortBtn() {
 }
 var toastEl = document.getElementById("toast");
 var sorted = false;
+/* true while the reset confirmation is open: the timer waits
+   and every other control ignores input until 是 / 否 is chosen */
+var confirmOpen = false;
 var toastTimer = null;
 
 var state = null;
@@ -353,6 +357,8 @@ function newGame(diff) {
   var blankKeys = blankKeysOf(built.cellMap);
   state = freshState(diff, puzzle, built, blankKeys);
   sorted = false;
+  confirmOpen = false;
+  resetConfirmEl.classList.remove("show");
   updateSortBtn();
   startTimer();
   render();
@@ -382,6 +388,8 @@ function restartSame() {
   updateSortBtn();
   endOverlay.classList.remove("show");
   pauseOverlay.classList.remove("show");
+  confirmOpen = false;
+  resetConfirmEl.classList.remove("show");
   updatePauseBtn();
   startTimer();
   render();
@@ -395,7 +403,7 @@ function fmtTime(s) {
 function startTimer() {
   stopTimer();
   state.timerId = setInterval(function () {
-    if (!state.paused && !state.over) {
+    if (!state.paused && !state.over && !confirmOpen) {
       state.seconds++;
       timerEl.textContent = fmtTime(state.seconds);
     }
@@ -440,7 +448,7 @@ function blankCellClass(cell, wrong, k) {
    number back so the player can fix it; tapping an empty one selects it */
 function onBlankCellClick(btn) {
   if (suppressCellClick) { suppressCellClick = false; return; }
-  if (state.paused || state.over) return;
+  if (state.paused || state.over || confirmOpen) return;
   var kk = btn.dataset.key;
   if (state.cellMap[kk].filled) takeBack(kk);
   else { state.selected = kk; renderBoard(); fitBoardFont(); }
@@ -807,7 +815,7 @@ function restoreSnapMeta(snap) {
   state.alertedSigs = Object.assign({}, snap.alertedSigs || {});
 }
 function undoLast() {
-  if (!state || state.paused || !state.history || !state.history.length) return;
+  if (!state || state.paused || confirmOpen || !state.history || !state.history.length) return;
   var snap = state.history.pop();
   snap.tileStates.forEach(function (ts) { ts.tile.used = ts.used; });
   var claimed = {};
@@ -916,7 +924,7 @@ function finishTilePlacement(placedKey) {
   boardFullWrongToast();
 }
 function onTileTap(idx, tileEl) {
-  if (!state || state.paused || state.over) return;
+  if (!state || state.paused || state.over || confirmOpen) return;
   var tile = state.tiles[idx];
   if (tile.used) return;
   if (!state.selected) { advanceSelection(); if (!state.selected) return; }
@@ -983,7 +991,7 @@ function newDragBase(e, kind) {
   };
 }
 function onTilePointerDown(e, idx, tileEl) {
-  if (!state || state.paused || state.over) return;
+  if (!state || state.paused || state.over || confirmOpen) return;
   if (state.tiles[idx].used) return;
   if (e.button != null && e.button !== 0) return;
   drag = newDragBase(e, "tile");
@@ -993,7 +1001,7 @@ function onTilePointerDown(e, idx, tileEl) {
 }
 
 function onCellPointerDown(e, k, btn) {
-  if (!state || state.paused || state.over) return;
+  if (!state || state.paused || state.over || confirmOpen) return;
   var cell = state.cellMap[k];
   if (!cell || !cell.filled) return;
   if (e.button != null && e.button !== 0) return;
@@ -1234,21 +1242,28 @@ function playWinChord(chordAt) {
   [523.25, 659.25, 783.99, 1046.50].forEach(function (f) { fxTone(f, chordAt, 1.1, "triangle", 0.13); });
   fxTone(1567.98, chordAt + 0.12, 0.9, "sine", 0.07);
 }
-function playWinJingle() {
-  if (!soundOn()) return;
-  if (!ensureFx()) return;
-  var t0 = fx.ctx.currentTime + 0.05;
-  var step = 0.155;
+function playWinArpeggio(t0, step) {
   /* rising arpeggio: C5 E5 G5 C6, a hop back, then up to E6 */
   var seq = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50, 1318.51];
   seq.forEach(function (f, i) {
     fxTone(f, t0 + i * step, i === seq.length - 1 ? step * 2.4 : step * 1.5, "triangle", 0.24);
   });
+  return seq.length;
+}
+function playWinSparkle(t0, step) {
   /* sparkle an octave up on the off-beats */
   [659.25, 783.99, 1046.50, 1318.51].forEach(function (f, i) {
     fxTone(f * 2, t0 + (i * 2 + 1) * step * 0.5 + i * step, step * 0.8, "sine", 0.05);
   });
-  playWinChord(t0 + seq.length * step + 0.05);
+}
+function playWinJingle() {
+  if (!soundOn()) return;
+  if (!ensureFx()) return;
+  var t0 = fx.ctx.currentTime + 0.05;
+  var step = 0.155;
+  var count = playWinArpeggio(t0, step);
+  playWinSparkle(t0, step);
+  playWinChord(t0 + count * step + 0.05);
 }
 
 /* ================= sound toggle =================
@@ -1276,7 +1291,7 @@ undoBtn.addEventListener("click", function () {
   undoLast();
 });
 sortBtn.addEventListener("click", function () {
-  if (!state || state.over) return;
+  if (!state || state.over || confirmOpen) return;
   if (!sorted) {
     state.tiles.sort(function (a, b) { return a.value - b.value; });
     sorted = true;
@@ -1288,7 +1303,7 @@ sortBtn.addEventListener("click", function () {
   renderBank();
 });
 pauseBtn.addEventListener("click", function () {
-  if (!state || state.over) return;
+  if (!state || state.over || confirmOpen) return;
   state.paused = !state.paused;
   pauseOverlay.classList.toggle("show", state.paused);
   updatePauseBtn();
@@ -1306,7 +1321,28 @@ document.getElementById("againBtn").addEventListener("click", function () {
   newGame(state.diff);
 });
 document.getElementById("retryBtn").addEventListener("click", restartSame);
-document.getElementById("resetBtn").addEventListener("click", restartSame);
+/* ================= reset confirmation =================
+   Tapping the reset icon never restarts the round at once:
+   it opens an in-page confirmation first. 是 (yes) hides the
+   dialog and resets the round; 否 (no) only hides the dialog
+   and leaves the game exactly as it was — board, mistakes,
+   hints and timer all untouched. */
+function showResetConfirm() {
+  if (!state) return;
+  confirmOpen = true;
+  resetConfirmEl.classList.add("show");
+}
+function hideResetConfirm() {
+  confirmOpen = false;
+  resetConfirmEl.classList.remove("show");
+}
+function onResetYes() {
+  hideResetConfirm();
+  restartSame();
+}
+document.getElementById("resetBtn").addEventListener("click", showResetConfirm);
+document.getElementById("resetYesBtn").addEventListener("click", onResetYes);
+document.getElementById("resetNoBtn").addEventListener("click", hideResetConfirm);
 function hintTargetKey() {
   var target = (state.selected && !state.cellMap[state.selected].filled) ? state.selected : null;
   if (!target) { advanceSelection(); target = state.selected; }
@@ -1327,7 +1363,7 @@ function applyHint(target, hv) {
   cell.tileIdx = hintTile;
 }
 function onHintTap() {
-  if (!state || state.paused || state.over) return;
+  if (!state || state.paused || state.over || confirmOpen) return;
   var target = hintTargetKey();
   if (!target) return;
   var sol = findSolution();
@@ -1342,6 +1378,7 @@ function onHintTap() {
 document.getElementById("hintBtn").addEventListener("click", onHintTap);
 document.querySelectorAll(".difficulties button").forEach(function (btn) {
   btn.addEventListener("click", function () {
+    if (confirmOpen) return;
     document.querySelectorAll(".difficulties button").forEach(function (b) {
       b.setAttribute("aria-pressed", b === btn ? "true" : "false");
     });
