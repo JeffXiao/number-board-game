@@ -1,0 +1,5 @@
+name: "math_crossword_game"
+title: "Math Crossword Game"
+description: "Maintain and extend the 数学十字谜 math crossword game with its play rules, icon only interface, sounds and GitHub publishing."
+category: "Work and knowledge"
+include_in_prompt: false
