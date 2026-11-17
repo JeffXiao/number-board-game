@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>数学十字谜</title>
+    <title>Math Crossword</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
@@ -134,6 +134,48 @@
       .pause-btn .icon-play { display: none; }
       .pause-btn.paused .icon-pause { display: none; }
       .pause-btn.paused .icon-play { display: block; }
+      /* ---------- language ---------- */
+      .lang-wrap { position: relative; }
+      .lang-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; gap: 6px; }
+      .lang-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+      .lang-btn .lang-code { font-size: 13px; line-height: 1; color: var(--ink); }
+      .lang-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 4px;
+        min-width: 148px;
+        z-index: 30;
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .lang-menu.show { display: flex; }
+      .lang-menu button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 14.5px;
+        text-align: left;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        min-height: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .lang-menu button:hover { background: var(--bg); }
+      .lang-menu button[aria-checked="true"] { background: var(--given-bg); color: var(--given-ink); }
+      .lang-menu button .check { visibility: hidden; font-size: 14px; }
+      .lang-menu button[aria-checked="true"] .check { visibility: visible; }
       /* ---------- difficulty ---------- */
       .difficulties {
         display: flex;
@@ -391,7 +433,8 @@
         pointer-events: none;
         transition: opacity 0.15s ease, transform 0.15s ease;
         z-index: 8;
-        white-space: nowrap;
+        text-align: center;
+        line-height: 1.4;
         max-width: calc(100% - 20px);
       }
       .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -408,85 +451,95 @@
     <main class="wrap">
       <div class="statusbar">
         <div class="stats" aria-live="polite">
-          <span><span class="label">错误</span><span class="val num" id="mistakes">0/3</span></span>
-          <span><span class="label">用时</span><span class="val num" id="timer">00:00</span></span>
-          <span><span class="label">提示</span><span class="val num" id="hints">0</span></span>
+          <span><span class="label" id="labelMistakes">Mistakes</span><span class="val num" id="mistakes">0/3</span></span>
+          <span><span class="label" id="labelTime">Time</span><span class="val num" id="timer">00:00</span></span>
+          <span><span class="label" id="labelHints">Hints</span><span class="val num" id="hints">0</span></span>
         </div>
         <div class="actions">
-          <button class="btn reset-btn" id="resetBtn" type="button" aria-label="重置本局，会先弹出确认" title="重置本局，会先弹出确认">
+          <div class="lang-wrap">
+            <button class="btn lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="语言 / Language" title="语言 / Language">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82C10.52 6.57 11.17 5.24 12 4.04zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A8.03 8.03 0 0 1 5.08 16zm2.95-8H5.08a8.03 8.03 0 0 1 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zm2.34-3.96c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38zm.25 3.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+              <span class="lang-code" id="langCode">EN</span>
+            </button>
+            <div class="lang-menu" id="langMenu" role="menu" aria-label="Language / 语言">
+              <button type="button" role="menuitemradio" data-lang="en" aria-checked="true"><span>English</span><span class="check" aria-hidden="true">✓</span></button>
+              <button type="button" role="menuitemradio" data-lang="zh" aria-checked="false"><span>中文</span><span class="check" aria-hidden="true">✓</span></button>
+            </div>
+          </div>
+          <button class="btn reset-btn" id="resetBtn" type="button" aria-label="Reset this round — asks for confirmation first" title="Reset this round — asks for confirmation first">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
           </button>
-          <button class="btn sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="关闭放入数字的声音" title="关闭放入数字的声音">
+          <button class="btn sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Turn off the placement sound" title="Turn off the placement sound">
             <svg class="icon-sound-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <svg class="icon-sound-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/></svg>
           </button>
-          <button class="btn pause-btn" id="pauseBtn" type="button" aria-pressed="false" aria-label="暂停" title="暂停">
+          <button class="btn pause-btn" id="pauseBtn" type="button" aria-pressed="false" aria-label="Pause" title="Pause">
             <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
           </button>
-          <button class="btn hint-btn" id="hintBtn" type="button" aria-label="提示：填入一个正确数字" title="提示">
+          <button class="btn hint-btn" id="hintBtn" type="button" aria-label="Hint: fill in one correct number" title="Hint">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
           </button>
         </div>
       </div>
 
-      <div class="difficulties" role="group" aria-label="难度">
-        <button type="button" data-diff="easy" aria-pressed="false">简单</button>
-        <button type="button" data-diff="medium" aria-pressed="true">中等</button>
-        <button type="button" data-diff="hard" aria-pressed="false">困难</button>
-        <button type="button" data-diff="expert" aria-pressed="false">专家</button>
+      <div class="difficulties" id="diffGroup" role="group" aria-label="Difficulty">
+        <button type="button" data-diff="easy" aria-pressed="false">Easy</button>
+        <button type="button" data-diff="medium" aria-pressed="true">Medium</button>
+        <button type="button" data-diff="hard" aria-pressed="false">Hard</button>
+        <button type="button" data-diff="expert" aria-pressed="false">Expert</button>
       </div>
 
-      <p class="howto">点一个空格选中它，再点下方对应的数字牌填进去；也可以直接把数字牌拖进空格。横竖每一条算式都要成立——交叉的格子是两边共用的。加法和乘法交换两个数的位置也算对（5×7 和 7×5 都可以），除法的除数和商也可以互换（18÷9=2 和 18÷2=9 都可以）。放下一个数字不会马上判错：等一条算式凑齐、里面的数字彼此对不上时，才会标红提醒并计一次错误。填错的数字留在格子里让你自己改——可以把格子里的数字直接拖回下面的数字牌区，也可以拖到另一个空格换位置，或者点一下格子取回重填；把数字牌拖到已填的格子上可以直接替换。想反悔时，点「排序」右边的「上一步」，每点一次就退回最近的一步操作。错误满 3 次，本局就结束了。点右上角的重置图标不会马上清空：会先问你是不是真的要重置，点「是」才会清空这一局重新开始，点「否」就什么都不变，继续这一局。</p>
+      <p class="howto" id="howtoText">Tap a blank cell to select it, then tap a number tile below to place it — or drag a tile straight into a cell. Every horizontal and vertical equation must hold, and crossing cells are shared by both. Addition and multiplication are commutative (5×7 and 7×5 both count), and in division the divisor and quotient can swap (18÷9=2 and 18÷2=9 both count). Placing a number isn’t judged right away: only when an equation is complete and its numbers don’t agree will it be marked red and count as a mistake. A wrong number stays in its cell so you can fix it — drag it back to the tile bank, drag it to another blank cell, or tap the cell to take it back; dropping a tile onto a filled cell replaces it. To undo, tap Undo next to Sort — each tap steps back one move. Three mistakes end the round. Tapping the reset icon won’t clear the board at once: it asks first, and only tapping Yes clears and restarts; No leaves everything as it was.</p>
 
       <div class="board-shell" id="boardShell">
-        <div class="board num" id="board" aria-label="数学十字谜棋盘"></div>
+        <div class="board num" id="board" aria-label="Math crossword board"></div>
         <div class="toast" id="toast" role="alert"></div>
 
         <div class="overlay" id="pauseOverlay">
-          <h2>已暂停</h2>
-          <p>休息一下，准备好了再继续。</p>
+          <h2 id="pauseTitle">Paused</h2>
+          <p id="pauseText">Take a break — continue when you’re ready.</p>
           <div class="row">
-            <button class="btn primary" id="resumeBtn" type="button">继续游戏</button>
+            <button class="btn primary" id="resumeBtn" type="button">Resume</button>
           </div>
         </div>
 
         <div class="overlay" id="endOverlay">
-          <h2 id="endTitle">完成！</h2>
+          <h2 id="endTitle">Done!</h2>
           <p id="endText"></p>
           <div class="row">
-            <button class="btn" id="retryBtn" type="button">再试一次</button>
-            <button class="btn primary" id="againBtn" type="button">换一题</button>
+            <button class="btn" id="retryBtn" type="button">Try again</button>
+            <button class="btn primary" id="againBtn" type="button">New puzzle</button>
           </div>
         </div>
 
         <div class="overlay" id="resetConfirmOverlay" role="alertdialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
-          <h2 id="resetConfirmTitle">真的要重置吗？</h2>
-          <p id="resetConfirmText">重置会清空这一局已经填好的数字，错误次数和用时也会重新开始。</p>
+          <h2 id="resetConfirmTitle">Reset this round?</h2>
+          <p id="resetConfirmText">Resetting clears the numbers you’ve placed, and mistakes and time start over.</p>
           <div class="row">
-            <button class="btn" id="resetNoBtn" type="button">否</button>
-            <button class="btn primary" id="resetYesBtn" type="button">是</button>
+            <button class="btn" id="resetNoBtn" type="button">No</button>
+            <button class="btn primary" id="resetYesBtn" type="button">Yes</button>
           </div>
         </div>
       </div>
 
       <div class="bank-head">
-        <span class="t">数字牌</span>
+        <span class="t" id="bankTitle">Number tiles</span>
         <span class="bank-tools">
-          <span class="p" id="progress">已填 0 / 0</span>
-          <button class="btn sort-btn" id="sortBtn" type="button" aria-pressed="false" aria-label="把数字牌从小到大排序" title="把数字牌从小到大排序">
+          <span class="p" id="progress">Filled 0 / 0</span>
+          <button class="btn sort-btn" id="sortBtn" type="button" aria-pressed="false" aria-label="Sort tiles from smallest to largest" title="Sort tiles from smallest to largest">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2.5" y="4" width="6" height="2.8" rx="1.4"/><rect x="2.5" y="10.6" width="9.5" height="2.8" rx="1.4"/><rect x="2.5" y="17.2" width="13" height="2.8" rx="1.4"/><path d="M19.9 3.6c.55 0 1 .45 1 1v9.1l1.62-1.62a1 1 0 1 1 1.41 1.41l-3.03 3.03a1.25 1.25 0 0 1-1.77 0l-3.03-3.03a1 1 0 1 1 1.41-1.41l1.4 1.4V4.6c0-.55.45-1 1-1Z"/></svg>
           </button>
-          <button class="btn sort-btn undo-btn" id="undoBtn" type="button" aria-label="返回上一步" title="返回上一步" disabled>
+          <button class="btn sort-btn undo-btn" id="undoBtn" type="button" aria-label="Undo last move" title="Undo last move" disabled>
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
           </button>
         </span>
       </div>
-      <div class="bank num" id="bank" aria-label="数字牌"></div>
+      <div class="bank num" id="bank" aria-label="Number tiles"></div>
 
-      <p class="foot">每次打开都会生成一道全新的谜题，切换难度也会来一道新的。简单只有加减法，中等加入乘法，困难四种运算都有；专家棋盘更大（11×11、20 条算式），数字大到 150。已有数字只保留很少几个——每条算式只留一到两个，剩下的格子都要靠推算填出来。每把一个数字放进格子，都会有一下赌场下注般的筹码声；全部填对时，还会响起一段欢快的庆祝声。右上角的喇叭按钮就是这个声音的开关：开着时放数字有声音，点一下关掉（图标变成静音喇叭），放数字就没有任何声音了，再点一下重新打开。</p>
+      <p class="foot" id="footText">A fresh puzzle is generated every time you open the game or switch difficulty. Easy uses only addition and subtraction, Medium adds multiplication, Hard uses all four operations; Expert is bigger (11×11, 20 equations) with numbers up to 150. Only a few numbers are given — one or two per equation — the rest is up to you to work out. Each placement makes a casino chip sound, and solving the whole puzzle plays a cheerful celebration. The speaker button at the top controls the sound: on, placements click; tap it to mute (the icon changes to a muted speaker) and placements are silent; tap again to turn sound back on. Use the globe button at the top to switch between English and Chinese — the whole game, including hints and messages, follows your choice.</p>
     </main>
 
-    <script src="js/game.js"></script>
+    <script src="js/game.js"></script></script>
   </body>
 </html>

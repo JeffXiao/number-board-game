@@ -13,6 +13,65 @@
 */
 "use strict";
 
+/* ================= language (English by default) ================= */
+var LANGS = {
+  en: {
+    title: "Math Crossword", htmlLang: "en", code: "EN",
+    mistakes: "Mistakes", time: "Time", hints: "Hints",
+    easy: "Easy", medium: "Medium", hard: "Hard", expert: "Expert", difficulty: "Difficulty",
+    howto: "Tap a blank cell to select it, then tap a number tile below to place it — or drag a tile straight into a cell. Every horizontal and vertical equation must hold, and crossing cells are shared by both. Addition and multiplication are commutative (5×7 and 7×5 both count), and in division the divisor and quotient can swap (18÷9=2 and 18÷2=9 both count). Placing a number isn’t judged right away: only when an equation is complete and its numbers don’t agree will it be marked red and count as a mistake. A wrong number stays in its cell so you can fix it — drag it back to the tile bank, drag it to another blank cell, or tap the cell to take it back; dropping a tile onto a filled cell replaces it. To undo, tap Undo next to Sort — each tap steps back one move. Three mistakes end the round. Tapping the reset icon won’t clear the board at once: it asks first, and only tapping Yes clears and restarts; No leaves everything as it was.",
+    pausedTitle: "Paused", pausedText: "Take a break — continue when you’re ready.", resume: "Resume",
+    retry: "Try again", again: "New puzzle",
+    resetTitle: "Reset this round?", resetText: "Resetting clears the numbers you’ve placed, and mistakes and time start over.", yes: "Yes", no: "No",
+    bankTitle: "Number tiles", boardLabel: "Math crossword board", bankLabel: "Number tiles",
+    foot: "A fresh puzzle is generated every time you open the game or switch difficulty. Easy uses only addition and subtraction, Medium adds multiplication, Hard uses all four operations; Expert is bigger (11×11, 20 equations) with numbers up to 150. Only a few numbers are given — one or two per equation — the rest is up to you to work out. Each placement makes a casino chip sound, and solving the whole puzzle plays a cheerful celebration. The speaker button at the top controls the sound: on, placements click; tap it to mute (the icon changes to a muted speaker) and placements are silent; tap again to turn sound back on. Use the globe button at the top to switch between English and Chinese — the whole game, including hints and messages, follows your choice.",
+    resetLabel: "Reset this round — asks for confirmation first",
+    soundOffLabel: "Turn off the placement sound", soundOnLabel: "Turn on the placement sound",
+    pauseLabel: "Pause", hintLabel: "Hint: fill in one correct number", hintTitle: "Hint",
+    sortLabel: "Sort tiles from smallest to largest", sortRestoreLabel: "Restore the tiles’ original order",
+    undoLabel: "Undo last move", langLabel: "Language / 语言",
+    emptyCell: "Empty cell", boardFullToast: "The board is full, but some red numbers still don’t match — drag a wrong one back or tap its cell to fix it",
+    hintWrong: "Fix the red numbers first, then use a hint", hintStuck: "These placements can’t fit together — change a few numbers and try again",
+    mistakeTitle: "So close", mistakeText: "That’s 3 mistakes. Try this puzzle again, or start a new one.",
+    winTitle: "All correct!",
+    progress: function (d, t) { return "Filled " + d + " / " + t; },
+    filledCell: function (v) { return "Filled " + v + " — tap to take it back, or drag it back to the tiles"; },
+    tileLabel: function (v) { return "Number tile " + v; },
+    mismatch: function (txt) { return "Doesn’t add up: " + txt + " isn’t true — drag it back or tap the cell to fix it"; },
+    winText: function (tm, m, h) { return "Time " + tm + ", " + m + " mistake" + (m === 1 ? "" : "s") + (h ? ", " + h + " hint" + (h === 1 ? "" : "s") + " used" : "") + ". Play another?"; }
+  },
+  zh: {
+    title: "数学十字谜", htmlLang: "zh-CN", code: "中文",
+    mistakes: "错误", time: "用时", hints: "提示",
+    easy: "简单", medium: "中等", hard: "困难", expert: "专家", difficulty: "难度",
+    howto: "点一个空格选中它，再点下方对应的数字牌填进去；也可以直接把数字牌拖进空格。横竖每一条算式都要成立——交叉的格子是两边共用的。加法和乘法交换两个数的位置也算对（5×7 和 7×5 都可以），除法的除数和商也可以互换（18÷9=2 和 18÷2=9 都可以）。放下一个数字不会马上判错：等一条算式凑齐、里面的数字彼此对不上时，才会标红提醒并计一次错误。填错的数字留在格子里让你自己改——可以把格子里的数字直接拖回下面的数字牌区，也可以拖到另一个空格换位置，或者点一下格子取回重填；把数字牌拖到已填的格子上可以直接替换。想反悔时，点「排序」右边的「上一步」，每点一次就退回最近的一步操作。错误满 3 次，本局就结束了。点右上角的重置图标不会马上清空：会先问你是不是真的要重置，点「是」才会清空这一局重新开始，点「否」就什么都不变，继续这一局。",
+    pausedTitle: "已暂停", pausedText: "休息一下，准备好了再继续。", resume: "继续游戏",
+    retry: "再试一次", again: "换一题",
+    resetTitle: "真的要重置吗？", resetText: "重置会清空这一局已经填好的数字，错误次数和用时也会重新开始。", yes: "是", no: "否",
+    bankTitle: "数字牌", boardLabel: "数学十字谜棋盘", bankLabel: "数字牌",
+    foot: "每次打开都会生成一道全新的谜题，切换难度也会来一道新的。简单只有加减法，中等加入乘法，困难四种运算都有；专家棋盘更大（11×11、20 条算式），数字大到 150。已有数字只保留很少几个——每条算式只留一到两个，剩下的格子都要靠推算填出来。每把一个数字放进格子，都会有一下赌场下注般的筹码声；全部填对时，还会响起一段欢快的庆祝声。右上角的喇叭按钮就是这个声音的开关：开着时放数字有声音，点一下关掉（图标变成静音喇叭），放数字就没有任何声音了，再点一下重新打开。点右上角的地球按钮可以切换英文和中文，整个游戏（包括提示和消息）都会跟着切换。",
+    resetLabel: "重置本局，会先弹出确认",
+    soundOffLabel: "关闭放入数字的声音", soundOnLabel: "打开放入数字的声音",
+    pauseLabel: "暂停", hintLabel: "提示：填入一个正确数字", hintTitle: "提示",
+    sortLabel: "把数字牌从小到大排序", sortRestoreLabel: "恢复数字牌原来的顺序",
+    undoLabel: "返回上一步", langLabel: "语言 / Language",
+    emptyCell: "空格", boardFullToast: "棋盘填满了，但还有标红的数字对不上，把错的拖回或点格子改一改",
+    hintWrong: "先把标红的数字改对，再用提示", hintStuck: "现在的填法凑不到一起，先改几个数字再试",
+    mistakeTitle: "差一点点", mistakeText: "错误满 3 次了。可以再试一次这一题，或者换一题新的。",
+    winTitle: "全部填对了！",
+    progress: function (d, t) { return "已填 " + d + " / " + t; },
+    filledCell: function (v) { return "已填 " + v + "，点按取回，或拖回数字牌"; },
+    tileLabel: function (v) { return "数字牌 " + v; },
+    mismatch: function (txt) { return "数字对不上：" + txt + " 不成立，拖回或点格子改"; },
+    winText: function (tm, m, h) { return "用时 " + tm + "，错误 " + m + " 次" + (h ? "，用了 " + h + " 次提示" : "") + "。再来一题？"; }
+  }
+};
+var lang = "en";
+var endKind = null;
+function T(k) { return LANGS[lang][k]; }
+function setTextId(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
+function setBtnLabel(el, txt) { if (!el) return; el.setAttribute("aria-label", txt); el.title = txt; }
+
 /* ================= puzzle generation ================= */
 
 var DIFFS = {
@@ -282,13 +341,13 @@ function updatePauseBtn() {
   var paused = !!(state && state.paused);
   pauseBtn.classList.toggle("paused", paused);
   pauseBtn.setAttribute("aria-pressed", paused ? "true" : "false");
-  var label = paused ? "继续游戏" : "暂停";
+  var label = paused ? T("resume") : T("pauseLabel");
   pauseBtn.setAttribute("aria-label", label);
   pauseBtn.title = label;
 }
 function updateSortBtn() {
   sortBtn.setAttribute("aria-pressed", sorted ? "true" : "false");
-  var tip = sorted ? "恢复数字牌原来的顺序" : "把数字牌从小到大排序";
+  var tip = sorted ? T("sortRestoreLabel") : T("sortLabel");
   sortBtn.setAttribute("aria-label", tip);
   sortBtn.title = tip;
 }
@@ -356,6 +415,7 @@ function newGame(diff) {
   var built = buildCellMap(puzzle);
   var blankKeys = blankKeysOf(built.cellMap);
   state = freshState(diff, puzzle, built, blankKeys);
+  endKind = null;
   sorted = false;
   confirmOpen = false;
   resetConfirmEl.classList.remove("show");
@@ -370,6 +430,7 @@ function clearBoardCells() {
   state.tiles.sort(function (a, b) { return a.orig - b.orig; });
 }
 function resetRoundState() {
+  endKind = null;
   state.selected = state.blankKeys.length ? state.blankKeys[0] : null;
   state.badKeys = {};
   state.alertedSigs = {};
@@ -422,7 +483,7 @@ function render() {
   hintsEl.textContent = state.hints;
   timerEl.textContent = fmtTime(state.seconds);
   var done = state.blankKeys.filter(function (k) { return state.cellMap[k].filled; }).length;
-  progressEl.textContent = "已填 " + done + " / " + state.blankKeys.length;
+  progressEl.textContent = T("progress")(done, state.blankKeys.length);
   renderBoard();
   renderBank();
   fitBoardFont();
@@ -458,7 +519,7 @@ function makeBlankCellEl(k, cell, wrong) {
   el.type = "button";
   el.className = blankCellClass(cell, wrong, k);
   el.textContent = cell.filled ? cell.value : "";
-  el.setAttribute("aria-label", cell.filled ? "已填 " + cell.value + "，点按取回，或拖回数字牌" : "空格");
+  el.setAttribute("aria-label", cell.filled ? T("filledCell")(cell.value) : T("emptyCell"));
   el.dataset.key = k;
   el.addEventListener("click", function () { onBlankCellClick(el); });
   el.addEventListener("pointerdown", function (e) { onCellPointerDown(e, el.dataset.key, el); });
@@ -490,7 +551,7 @@ function makeTileEl(tile, idx) {
   b.className = "tile num" + (tile.used ? " used" : "");
   b.textContent = tile.value;
   b.dataset.idx = idx;
-  b.setAttribute("aria-label", "数字牌 " + tile.value);
+  b.setAttribute("aria-label", T("tileLabel")(tile.value));
   b.addEventListener("click", function () { onTileClick(idx, b); });
   b.addEventListener("pointerdown", function (e) { onTilePointerDown(e, idx, b); });
   return b;
@@ -875,9 +936,10 @@ function shakeCells(keys) {
 }
 function showMistakeEnd() {
   state.over = true;
+  endKind = "lose";
   stopTimer();
-  endTitle.textContent = "差一点点";
-  endText.textContent = "错误满 3 次了。可以再试一次这一题，或者换一题新的。";
+  endTitle.textContent = T("mistakeTitle");
+  endText.textContent = T("mistakeText");
   document.getElementById("retryBtn").style.display = "";
   endOverlay.classList.add("show");
 }
@@ -891,7 +953,7 @@ function judgeMismatch(placedKeys) {
   state.mistakes++;
   render();
   shakeCells(placedKeys);
-  showToast("数字对不上：" + eqText(scan.firstFail) + " 不成立，拖回或点格子改");
+  showToast(T("mismatch")(eqText(scan.firstFail)));
   if (state.mistakes >= 3) showMistakeEnd();
   return true;
 }
@@ -900,7 +962,7 @@ function boardFilled() {
   return state.blankKeys.every(function (k) { return state.cellMap[k].filled; });
 }
 function boardFullWrongToast() {
-  if (!state.over && boardFilled()) showToast("棋盘填满了，但还有标红的数字对不上，把错的拖回或点格子改一改");
+  if (!state.over && boardFilled()) showToast(T("boardFullToast"));
 }
 /* placing onto a filled cell replaces it: the old tile returns
    to the bank and the new number takes its place */
@@ -956,7 +1018,7 @@ function finishMoveOrSwap(fromK, toK) {
   if (!alerted) advanceSelection();
   render();
   if (!alerted) checkWin();
-  if (!state.over && boardFilled() && Object.keys(computeWrongKeys()).length) showToast("棋盘填满了，但还有标红的数字对不上，把错的拖回或点格子改一改");
+  if (!state.over && boardFilled() && Object.keys(computeWrongKeys()).length) showToast(T("boardFullToast"));
 }
 /* Move the number out of a filled cell into another blank cell
    (or swap the two numbers when the target is filled too) — the
@@ -1115,9 +1177,9 @@ function allEquationsHold() {
   });
 }
 function showWinEnd() {
-  endTitle.textContent = "全部填对了！";
-  endText.textContent = "用时 " + fmtTime(state.seconds) + "，错误 " + state.mistakes + " 次" +
-    (state.hints ? "，用了 " + state.hints + " 次提示" : "") + "。再来一题？";
+  endKind = "win";
+  endTitle.textContent = T("winTitle");
+  endText.textContent = T("winText")(fmtTime(state.seconds), state.mistakes, state.hints);
   document.getElementById("retryBtn").style.display = "none";
   endOverlay.classList.add("show");
 }
@@ -1274,7 +1336,7 @@ function playWinJingle() {
 function updateSoundBtn() {
   if (!soundBtn) return;
   soundBtn.setAttribute("aria-pressed", soundEnabled ? "true" : "false");
-  var label = soundEnabled ? "关闭放入数字的声音" : "打开放入数字的声音";
+  var label = soundEnabled ? T("soundOffLabel") : T("soundOnLabel");
   soundBtn.setAttribute("aria-label", label);
   soundBtn.title = label;
 }
@@ -1285,6 +1347,81 @@ function toggleSound() {
 }
 if (soundBtn) soundBtn.addEventListener("click", toggleSound);
 updateSoundBtn();
+
+/* ================= language switching ================= */
+function applyLangMeta() {
+  document.title = T("title");
+  document.documentElement.lang = T("htmlLang");
+  setTextId("labelMistakes", T("mistakes"));
+  setTextId("labelTime", T("time"));
+  setTextId("labelHints", T("hints"));
+  setTextId("howtoText", T("howto"));
+  setTextId("footText", T("foot"));
+}
+function applyLangDiff() {
+  var g = document.getElementById("diffGroup");
+  if (g) g.setAttribute("aria-label", T("difficulty"));
+  document.querySelectorAll(".difficulties button").forEach(function (b) { b.textContent = T(b.dataset.diff); });
+}
+function applyLangOverlays() {
+  setTextId("pauseTitle", T("pausedTitle"));
+  setTextId("pauseText", T("pausedText"));
+  setTextId("resumeBtn", T("resume"));
+  setTextId("retryBtn", T("retry"));
+  setTextId("againBtn", T("again"));
+  setTextId("resetConfirmTitle", T("resetTitle"));
+  setTextId("resetConfirmText", T("resetText"));
+  setTextId("resetYesBtn", T("yes"));
+  setTextId("resetNoBtn", T("no"));
+  setTextId("bankTitle", T("bankTitle"));
+}
+function applyLangAria() {
+  boardEl.setAttribute("aria-label", T("boardLabel"));
+  bankEl.setAttribute("aria-label", T("bankLabel"));
+  setBtnLabel(document.getElementById("resetBtn"), T("resetLabel"));
+  setBtnLabel(document.getElementById("hintBtn"), T("hintLabel"));
+  document.getElementById("hintBtn").title = T("hintTitle");
+  setBtnLabel(undoBtn, T("undoLabel"));
+  setBtnLabel(document.getElementById("langBtn"), T("langLabel"));
+}
+function applyLangMenuState() {
+  setTextId("langCode", T("code"));
+  document.querySelectorAll("#langMenu button").forEach(function (b) {
+    b.setAttribute("aria-checked", b.dataset.lang === lang ? "true" : "false");
+  });
+}
+function refreshEndTexts() {
+  if (!state || !state.over || !endKind) return;
+  if (endKind === "win") { endTitle.textContent = T("winTitle"); endText.textContent = T("winText")(fmtTime(state.seconds), state.mistakes, state.hints); }
+  else { endTitle.textContent = T("mistakeTitle"); endText.textContent = T("mistakeText"); }
+}
+function applyLanguage() {
+  applyLangMeta(); applyLangDiff(); applyLangOverlays(); applyLangAria(); applyLangMenuState();
+  updateSoundBtn(); updateSortBtn();
+  if (state) { refreshEndTexts(); render(); } else updatePauseBtn();
+}
+function closeLangMenu() {
+  var m = document.getElementById("langMenu"); if (m) m.classList.remove("show");
+  var b = document.getElementById("langBtn"); if (b) b.setAttribute("aria-expanded", "false");
+}
+function toggleLangMenu() {
+  var m = document.getElementById("langMenu"); if (!m) return;
+  var open = m.classList.toggle("show");
+  document.getElementById("langBtn").setAttribute("aria-expanded", open ? "true" : "false");
+}
+function setLanguage(code) {
+  if (!LANGS[code]) { closeLangMenu(); return; }
+  lang = code; closeLangMenu(); applyLanguage();
+}
+function bindLangControls() {
+  document.getElementById("langBtn").addEventListener("click", function (e) { e.stopPropagation(); toggleLangMenu(); });
+  document.querySelectorAll("#langMenu button").forEach(function (b) {
+    b.addEventListener("click", function () { setLanguage(b.dataset.lang); });
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest(".lang-wrap")) closeLangMenu(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeLangMenu(); });
+}
+bindLangControls();
 
 /* ================= controls ================= */
 undoBtn.addEventListener("click", function () {
@@ -1350,7 +1487,7 @@ function hintTargetKey() {
 }
 function showHintStuckToast() {
   var hasWrong = Object.keys(computeWrongKeys()).length > 0;
-  showToast(hasWrong ? "先把标红的数字改对，再用提示" : "现在的填法凑不到一起，先改几个数字再试");
+  showToast(hasWrong ? T("hintWrong") : T("hintStuck"));
 }
 function applyHint(target, hv) {
   var cell = state.cellMap[target];
@@ -1389,3 +1526,4 @@ document.querySelectorAll(".difficulties button").forEach(function (btn) {
 });
 
 newGame("medium");
+applyLanguage();
