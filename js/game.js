@@ -19,12 +19,10 @@ var LANGS = {
     title: "Math Crossword", htmlLang: "en", code: "EN",
     mistakes: "Mistakes", time: "Time", hints: "Hints",
     easy: "Easy", medium: "Medium", hard: "Hard", expert: "Expert", difficulty: "Difficulty",
-    howto: "Tap a blank cell to select it, then tap a number tile below to place it — or drag a tile straight into a cell. Every horizontal and vertical equation must hold, and crossing cells are shared by both. Addition and multiplication are commutative (5×7 and 7×5 both count), and in division the divisor and quotient can swap (18÷9=2 and 18÷2=9 both count). Placing a number isn’t judged right away: only when an equation is complete and its numbers don’t agree will it be marked red and count as a mistake. A wrong number stays in its cell so you can fix it — drag it back to the tile bank, drag it to another blank cell, or tap the cell to take it back; dropping a tile onto a filled cell replaces it. To undo, tap Undo next to Sort — each tap steps back one move. Three mistakes end the round. Tapping the reset icon won’t clear the board at once: it asks first, and only tapping Yes clears and restarts; No leaves everything as it was.",
     pausedTitle: "Paused", pausedText: "Take a break — continue when you’re ready.", resume: "Resume",
     retry: "Try again", again: "New puzzle",
     resetTitle: "Reset this round?", resetText: "Resetting clears the numbers you’ve placed, and mistakes and time start over.", yes: "Yes", no: "No",
     bankTitle: "Number tiles", boardLabel: "Math crossword board", bankLabel: "Number tiles",
-    foot: "A fresh puzzle is generated every time you open the game or switch difficulty. Easy uses only addition and subtraction, Medium adds multiplication, Hard uses all four operations; Expert is bigger (11×11, 20 equations) with numbers up to 150. Only a few numbers are given — one or two per equation — and the result of every equation is always left blank, so each answer is yours to work out. Each placement makes a casino chip sound, and solving the whole puzzle plays a cheerful celebration. The speaker button at the top controls the sound: on, placements click; tap it to mute (the icon changes to a muted speaker) and placements are silent; tap again to turn sound back on. Use the globe button at the top to switch between English and Chinese — the whole game, including hints and messages, follows your choice.",
     resetLabel: "Reset this round — asks for confirmation first",
     soundOffLabel: "Turn off the placement sound", soundOnLabel: "Turn on the placement sound",
     pauseLabel: "Pause", hintLabel: "Hint: fill in one correct number", hintTitle: "Hint",
@@ -44,12 +42,10 @@ var LANGS = {
     title: "数学十字谜", htmlLang: "zh-CN", code: "中文",
     mistakes: "错误", time: "用时", hints: "提示",
     easy: "简单", medium: "中等", hard: "困难", expert: "专家", difficulty: "难度",
-    howto: "点一个空格选中它，再点下方对应的数字牌填进去；也可以直接把数字牌拖进空格。横竖每一条算式都要成立——交叉的格子是两边共用的。加法和乘法交换两个数的位置也算对（5×7 和 7×5 都可以），除法的除数和商也可以互换（18÷9=2 和 18÷2=9 都可以）。放下一个数字不会马上判错：等一条算式凑齐、里面的数字彼此对不上时，才会标红提醒并计一次错误。填错的数字留在格子里让你自己改——可以把格子里的数字直接拖回下面的数字牌区，也可以拖到另一个空格换位置，或者点一下格子取回重填；把数字牌拖到已填的格子上可以直接替换。想反悔时，点「排序」右边的「上一步」，每点一次就退回最近的一步操作。错误满 3 次，本局就结束了。点右上角的重置图标不会马上清空：会先问你是不是真的要重置，点「是」才会清空这一局重新开始，点「否」就什么都不变，继续这一局。",
     pausedTitle: "已暂停", pausedText: "休息一下，准备好了再继续。", resume: "继续游戏",
     retry: "再试一次", again: "换一题",
     resetTitle: "真的要重置吗？", resetText: "重置会清空这一局已经填好的数字，错误次数和用时也会重新开始。", yes: "是", no: "否",
     bankTitle: "数字牌", boardLabel: "数学十字谜棋盘", bankLabel: "数字牌",
-    foot: "每次打开都会生成一道全新的谜题，切换难度也会来一道新的。简单只有加减法，中等加入乘法，困难四种运算都有；专家棋盘更大（11×11、20 条算式），数字大到 150。已有数字只保留很少几个——每条算式只留一到两个，而且每条算式的得数一律留空，都要靠你推算填出来。每把一个数字放进格子，都会有一下赌场下注般的筹码声；全部填对时，还会响起一段欢快的庆祝声。右上角的喇叭按钮就是这个声音的开关：开着时放数字有声音，点一下关掉（图标变成静音喇叭），放数字就没有任何声音了，再点一下重新打开。点右上角的地球按钮可以切换英文和中文，整个游戏（包括提示和消息）都会跟着切换。",
     resetLabel: "重置本局，会先弹出确认",
     soundOffLabel: "关闭放入数字的声音", soundOnLabel: "打开放入数字的声音",
     pauseLabel: "暂停", hintLabel: "提示：填入一个正确数字", hintTitle: "提示",
@@ -75,10 +71,10 @@ function setBtnLabel(el, txt) { if (!el) return; el.setAttribute("aria-label", t
 /* ================= puzzle generation ================= */
 
 var DIFFS = {
-  easy:   { ops: ["+", "-"],          max: 30,  maxGiven: 4 },
-  medium: { ops: ["+", "-", "*"],    max: 99,  maxGiven: 5 },
-  hard:   { ops: ["+", "-", "*", "/"], max: 99,  maxGiven: 7 },
-  expert: { ops: ["+", "-", "*", "/"], max: 150, maxGiven: 10 }
+  easy:   { ops: ["+", "-"],          max: 30 },
+  medium: { ops: ["+", "-", "*"],    max: 99 },
+  hard:   { ops: ["+", "-", "*", "/"], max: 99 },
+  expert: { ops: ["+", "-", "*", "/"], max: 150 }
 };
 
 /* Each equation: [direction, startRow, startCol]; it spans 5 cells:
@@ -229,70 +225,44 @@ function resultKeysOf(eqs) {
   eqs.forEach(function (eq) { out[key(eq.pres.r, eq.pres.c)] = true; });
   return out;
 }
-/* the not-yet-given cell anchoring the most still-unanchored
-   equations; result cells are skipped, so only operands anchor */
-function pickGivenCell(keys, givens, membership, uncovered, resKeys) {
-  var bestScore = 0, cands = [];
-  keys.forEach(function (k) {
-    if (givens[k] || resKeys[k]) return;
-    var s = 0;
-    membership[k].forEach(function (ei) { if (uncovered[ei]) s++; });
-    if (s > bestScore) { bestScore = s; cands = [k]; }
-    else if (s === bestScore && s > 0) cands.push(k);
-  });
-  return cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;
-}
-/* greedy set cover: keep picking anchor cells until every equation
-   has at least one given (crossing cells anchor two at once). An
-   equation whose three numbers are all results of other equations
-   has no operand to anchor it: it stays fully blank and is worked
-   out through the equations its numbers belong to. */
-function greedyGivens(eqs, membership, keys, resKeys) {
-  var uncovered = {};
-  eqs.forEach(function (eq, idx) { uncovered[idx] = true; });
-  var givens = {};
-  while (Object.keys(uncovered).length) {
-    var pick = pickGivenCell(keys, givens, membership, uncovered, resKeys);
-    if (!pick) break;
-    givens[pick] = true;
-    membership[pick].forEach(function (ei) { delete uncovered[ei]; });
-  }
-  return givens;
-}
 function blanksFromGivens(keys, givens) {
   var blanks = {};
   keys.forEach(function (k) { if (!givens[k]) blanks[k] = true; });
   return blanks;
 }
-/* every equation keeps >=1 blank: normally 1-2 blanks with at least
-   one operand given; an equation made only of other equations'
-   results may keep all 3 blank (its result is never given either) */
-function givensShapeOk(eqs, blanks, resKeys) {
-  for (var i = 0; i < eqs.length; i++) {
-    var eq = eqs[i];
-    var cells = [eq.pa, eq.pb, eq.pres];
-    var nb = cells.filter(function (p) { return blanks[key(p.r, p.c)]; }).length;
-    if (nb < 1 || nb > 3) return false;
-    if (nb === 3 && !cells.every(function (p) { return resKeys[key(p.r, p.c)]; })) return false;
-  }
-  return true;
+/* One-given rule: an equation shows at most ONE prefilled number,
+   that number is always an operand, the result is never prefilled,
+   and no equation's answer may be computable from its own
+   prefilled numbers alone. An equation whose operands are all
+   results of crossing equations, or whose giveable operand was
+   already claimed as another equation's one given, gets no
+   prefilled number at all: it is solved through its crossings. */
+/* one shuffled pass: a cell becomes a given only when every
+   equation it belongs to still has no given of its own, so one
+   crossing cell can serve two equations with that single number */
+function randomGivens(cands, membership) {
+  var givens = {}, covered = {};
+  shuffle(cands).forEach(function (k) {
+    var free = membership[k].every(function (ei) { return !covered[ei]; });
+    if (!free) return;
+    givens[k] = true;
+    membership[k].forEach(function (ei) { covered[ei] = true; });
+  });
+  return givens;
 }
-/* Keep the given (pre-filled) numbers as few as possible: run the
-   greedy cover many times and keep the smallest valid set found. */
+/* Keep the largest valid set of givens found over many shuffled
+   passes, so as many equations as possible keep their one given
+   while no equation ever gets two. */
 function pickBlanks(eqs, cfg) {
   var membership = buildMembership(eqs);
   var keys = Object.keys(membership), resKeys = resultKeysOf(eqs);
+  var cands = keys.filter(function (k) { return !resKeys[k]; });
   var best = null;
   for (var attempt = 0; attempt < 200; attempt++) {
-    var givens = greedyGivens(eqs, membership, keys, resKeys);
-    var blanks = blanksFromGivens(keys, givens);
-    if (!givensShapeOk(eqs, blanks, resKeys)) continue;
-    if (!best || Object.keys(givens).length < Object.keys(best.givens).length) {
-      best = { givens: givens, blanks: blanks };
-      if (Object.keys(givens).length <= cfg.maxGiven) break;
-    }
+    var givens = randomGivens(cands, membership);
+    if (!best || Object.keys(givens).length > Object.keys(best).length) best = givens;
   }
-  return best ? best.blanks : null;
+  return best ? blanksFromGivens(keys, best) : null;
 }
 
 function valueOrNull(values, p) {
@@ -420,7 +390,7 @@ function freshState(diff, puzzle, built, blankKeys) {
     diff: diff, eqs: puzzle.eqs, cellMap: built.cellMap, rows: built.rows, cols: built.cols,
     maxDigits: maxDigitsOf(built.cellMap), blankKeys: blankKeys,
     tiles: makeTiles(built.cellMap, blankKeys),
-    selected: blankKeys.length ? blankKeys[0] : null,
+    selected: null,
     badKeys: {}, alertedSigs: {}, history: [], mistakes: 0, hints: 0,
     seconds: 0, paused: false, over: false, timerId: null
   };
@@ -447,7 +417,7 @@ function clearBoardCells() {
 }
 function resetRoundState() {
   endKind = null;
-  state.selected = state.blankKeys.length ? state.blankKeys[0] : null;
+  state.selected = null;
   state.badKeys = {};
   state.alertedSigs = {};
   state.history = [];
@@ -1371,8 +1341,6 @@ function applyLangMeta() {
   setTextId("labelMistakes", T("mistakes"));
   setTextId("labelTime", T("time"));
   setTextId("labelHints", T("hints"));
-  setTextId("howtoText", T("howto"));
-  setTextId("footText", T("foot"));
 }
 function applyLangDiff() {
   var g = document.getElementById("diffGroup");
