@@ -24,7 +24,7 @@ var LANGS = {
     retry: "Try again", again: "New puzzle",
     resetTitle: "Reset this round?", resetText: "Resetting clears the numbers you’ve placed, and mistakes and time start over.", yes: "Yes", no: "No",
     bankTitle: "Number tiles", boardLabel: "Math crossword board", bankLabel: "Number tiles",
-    foot: "A fresh puzzle is generated every time you open the game or switch difficulty. Easy uses only addition and subtraction, Medium adds multiplication, Hard uses all four operations; Expert is bigger (11×11, 20 equations) with numbers up to 150. Only a few numbers are given — one or two per equation — the rest is up to you to work out. Each placement makes a casino chip sound, and solving the whole puzzle plays a cheerful celebration. The speaker button at the top controls the sound: on, placements click; tap it to mute (the icon changes to a muted speaker) and placements are silent; tap again to turn sound back on. Use the globe button at the top to switch between English and Chinese — the whole game, including hints and messages, follows your choice.",
+    foot: "A fresh puzzle is generated every time you open the game or switch difficulty. Easy uses only addition and subtraction, Medium adds multiplication, Hard uses all four operations; Expert is bigger (11×11, 20 equations) with numbers up to 150. Only a few numbers are given — one or two per equation — and the result of every equation is always left blank, so each answer is yours to work out. Each placement makes a casino chip sound, and solving the whole puzzle plays a cheerful celebration. The speaker button at the top controls the sound: on, placements click; tap it to mute (the icon changes to a muted speaker) and placements are silent; tap again to turn sound back on. Use the globe button at the top to switch between English and Chinese — the whole game, including hints and messages, follows your choice.",
     resetLabel: "Reset this round — asks for confirmation first",
     soundOffLabel: "Turn off the placement sound", soundOnLabel: "Turn on the placement sound",
     pauseLabel: "Pause", hintLabel: "Hint: fill in one correct number", hintTitle: "Hint",
@@ -49,7 +49,7 @@ var LANGS = {
     retry: "再试一次", again: "换一题",
     resetTitle: "真的要重置吗？", resetText: "重置会清空这一局已经填好的数字，错误次数和用时也会重新开始。", yes: "是", no: "否",
     bankTitle: "数字牌", boardLabel: "数学十字谜棋盘", bankLabel: "数字牌",
-    foot: "每次打开都会生成一道全新的谜题，切换难度也会来一道新的。简单只有加减法，中等加入乘法，困难四种运算都有；专家棋盘更大（11×11、20 条算式），数字大到 150。已有数字只保留很少几个——每条算式只留一到两个，剩下的格子都要靠推算填出来。每把一个数字放进格子，都会有一下赌场下注般的筹码声；全部填对时，还会响起一段欢快的庆祝声。右上角的喇叭按钮就是这个声音的开关：开着时放数字有声音，点一下关掉（图标变成静音喇叭），放数字就没有任何声音了，再点一下重新打开。点右上角的地球按钮可以切换英文和中文，整个游戏（包括提示和消息）都会跟着切换。",
+    foot: "每次打开都会生成一道全新的谜题，切换难度也会来一道新的。简单只有加减法，中等加入乘法，困难四种运算都有；专家棋盘更大（11×11、20 条算式），数字大到 150。已有数字只保留很少几个——每条算式只留一到两个，而且每条算式的得数一律留空，都要靠你推算填出来。每把一个数字放进格子，都会有一下赌场下注般的筹码声；全部填对时，还会响起一段欢快的庆祝声。右上角的喇叭按钮就是这个声音的开关：开着时放数字有声音，点一下关掉（图标变成静音喇叭），放数字就没有任何声音了，再点一下重新打开。点右上角的地球按钮可以切换英文和中文，整个游戏（包括提示和消息）都会跟着切换。",
     resetLabel: "重置本局，会先弹出确认",
     soundOffLabel: "关闭放入数字的声音", soundOnLabel: "打开放入数字的声音",
     pauseLabel: "暂停", hintLabel: "提示：填入一个正确数字", hintTitle: "提示",
@@ -222,26 +222,38 @@ function buildMembership(eqs) {
   });
   return membership;
 }
-/* the not-yet-given cell anchoring the most still-unanchored equations */
-function pickGivenCell(keys, givens, membership, uncovered) {
-  var bestScore = -1, cands = [];
+/* the result cell of each equation — results are never given:
+   the player always has to work out and fill in the answer */
+function resultKeysOf(eqs) {
+  var out = {};
+  eqs.forEach(function (eq) { out[key(eq.pres.r, eq.pres.c)] = true; });
+  return out;
+}
+/* the not-yet-given cell anchoring the most still-unanchored
+   equations; result cells are skipped, so only operands anchor */
+function pickGivenCell(keys, givens, membership, uncovered, resKeys) {
+  var bestScore = 0, cands = [];
   keys.forEach(function (k) {
-    if (givens[k]) return;
+    if (givens[k] || resKeys[k]) return;
     var s = 0;
     membership[k].forEach(function (ei) { if (uncovered[ei]) s++; });
     if (s > bestScore) { bestScore = s; cands = [k]; }
-    else if (s === bestScore) cands.push(k);
+    else if (s === bestScore && s > 0) cands.push(k);
   });
-  return cands[Math.floor(Math.random() * cands.length)];
+  return cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;
 }
 /* greedy set cover: keep picking anchor cells until every equation
-   has at least one given (crossing cells anchor two at once) */
-function greedyGivens(eqs, membership, keys) {
+   has at least one given (crossing cells anchor two at once). An
+   equation whose three numbers are all results of other equations
+   has no operand to anchor it: it stays fully blank and is worked
+   out through the equations its numbers belong to. */
+function greedyGivens(eqs, membership, keys, resKeys) {
   var uncovered = {};
   eqs.forEach(function (eq, idx) { uncovered[idx] = true; });
   var givens = {};
   while (Object.keys(uncovered).length) {
-    var pick = pickGivenCell(keys, givens, membership, uncovered);
+    var pick = pickGivenCell(keys, givens, membership, uncovered, resKeys);
+    if (!pick) break;
     givens[pick] = true;
     membership[pick].forEach(function (ei) { delete uncovered[ei]; });
   }
@@ -252,12 +264,16 @@ function blanksFromGivens(keys, givens) {
   keys.forEach(function (k) { if (!givens[k]) blanks[k] = true; });
   return blanks;
 }
-/* every equation keeps >=1 given and >=1 blank (so 1-2 blanks each) */
-function givensShapeOk(eqs, blanks) {
+/* every equation keeps >=1 blank: normally 1-2 blanks with at least
+   one operand given; an equation made only of other equations'
+   results may keep all 3 blank (its result is never given either) */
+function givensShapeOk(eqs, blanks, resKeys) {
   for (var i = 0; i < eqs.length; i++) {
     var eq = eqs[i];
-    var nb = [eq.pa, eq.pb, eq.pres].filter(function (p) { return blanks[key(p.r, p.c)]; }).length;
-    if (nb < 1 || nb > 2) return false;
+    var cells = [eq.pa, eq.pb, eq.pres];
+    var nb = cells.filter(function (p) { return blanks[key(p.r, p.c)]; }).length;
+    if (nb < 1 || nb > 3) return false;
+    if (nb === 3 && !cells.every(function (p) { return resKeys[key(p.r, p.c)]; })) return false;
   }
   return true;
 }
@@ -265,12 +281,12 @@ function givensShapeOk(eqs, blanks) {
    greedy cover many times and keep the smallest valid set found. */
 function pickBlanks(eqs, cfg) {
   var membership = buildMembership(eqs);
-  var keys = Object.keys(membership);
+  var keys = Object.keys(membership), resKeys = resultKeysOf(eqs);
   var best = null;
   for (var attempt = 0; attempt < 200; attempt++) {
-    var givens = greedyGivens(eqs, membership, keys);
+    var givens = greedyGivens(eqs, membership, keys, resKeys);
     var blanks = blanksFromGivens(keys, givens);
-    if (!givensShapeOk(eqs, blanks)) continue;
+    if (!givensShapeOk(eqs, blanks, resKeys)) continue;
     if (!best || Object.keys(givens).length < Object.keys(best.givens).length) {
       best = { givens: givens, blanks: blanks };
       if (Object.keys(givens).length <= cfg.maxGiven) break;
