@@ -46,7 +46,7 @@
 
 - Use a circular arrow for reset, a speaker for sound, a pause icon that turns into a play icon while paused, a lightbulb for hints, a sort icon for sorting, a curved arrow for undo, and expand arrows for fullscreen that turn into collapse arrows while fullscreen.
 
-- Keep the top bar as reset, sound, pause, hint and fullscreen icons, and keep the sort and undo icons beside the number bank.
+- Keep the top bar as reset, sound, pause and hint icons, and keep the sort, undo and fullscreen icons beside the number bank (fullscreen sits next to undo, Nov 19, 2026, at the user's request — moved down from the top bar).
 
 - Remove the new puzzle button from the top bar and keep it only in the completion popup and the 3 mistake popup.
 
