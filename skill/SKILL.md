@@ -10,13 +10,15 @@
 
 - Treat division as interchangeable between divisor and quotient, so 18 ÷ 9 = 2 and 18 ÷ 2 = 9 both count.
 
-- Give each equation one or two prefilled numbers and keep the total as low as the difficulty allows, preferring cross cells as prefilled numbers because one cross number serves two equations.
+- Never prefill the result cell of an equation on any difficulty: the answer after = is always a blank the player must work out (Nov 17, 2026, at the user's request — □ + 96 = 104 gave the answer away; verified that 60 fresh puzzles per difficulty all generate with zero results given and the hint solver still solves them all). Give each equation at most ONE prefilled number, and it must be an operand: with two numbers on the left side the answer is given away, so no equation's answer may be computable from its own prefilled numbers alone (Nov 17, 2026, at the user's request — the 92 − 57 = □ case). Keep the total as low as the difficulty allows, preferring cross cells as prefilled numbers because one cross number serves two equations. An equation may stay fully blank and be solved through its crossings. This rule is also stated as a comment in game.js above the givens-selection code, so any coder reading the source sees it.
 
 - Offer four difficulties named easy, medium, hard and expert.
 
 - Let easy use addition and subtraction only, medium add multiplication, hard use all four operations, and expert use an 11 by 11 board with 20 equations, 32 number cells and numbers up to 150.
 
 - Generate a fresh random puzzle on every open and on every difficulty change.
+
+- Remember the language choice across visits: store it in localStorage when the toggle is used and read it on load before rendering, defaulting to English when nothing is stored (Nov 18, 2026, at the user's request — "make it stick").
 
 ## Judge errors and let the player fix them
 
@@ -66,13 +68,11 @@
 
 - Keep the game as a static web artifact named 数学十字谜 with slug `shu-xue-shi-zi-mi`.
 
-- Keep `index.html` for structure and styles only, and keep all JavaScript in `js/game.js` as one classic script with no modules, imports or exports.
+- Show no description or instructions text in the game: no how-to paragraph and no footer paragraph (Nov 17, 2026, at the user's request — a good game should be intuitive to the user). Keep only the board, the number bank with its short labels, the status bar, and the icon buttons.
 
-- Keep the GitHub repo layout as `js/game.js`. The Muse artifact copy is served from `assets/js/game.js` instead because the artifact runtime only publishes `index.html` and files under `assets/`, so when pushing to GitHub, place the script at `js/game.js` and point `index.html` at `js/game.js`.
+- Keep `index.html` for structure only, with styles in an external stylesheet, and keep JavaScript as ES modules split by concern — follow the `web-development` skill for all code structure. The old "one classic script, no modules" rule is superseded (Nov 19, 2026, at the user's request — a code review found the single 60KB classic script looked like a high-school project). The artifact serves modules from `assets/js/`; the GitHub layout mirrors them under `js/`, and `index.html` points at the module entry.
 
-- Keep each function in `game.js` to 15 lines or fewer, counting the whole function from its opening line to its closing brace and including inline event handlers; when a function grows past 15 lines, split part of it into a new helper function and have the original function call the helper instead.
-
-- Split functions only by extracting helpers — never change game behavior, wording, sounds or layout while splitting.
+- Keep functions small and single-purpose per the `web-development` skill; when one grows, split it by extracting a helper and calling it — never change game behavior, wording, sounds or layout while splitting. (The old "15 lines or fewer" rule is superseded — it was aspirational, never enforced, and the file still grew to ~1,500 lines.)
 
 - Change the game only through `artifact.edit` on that slug, passing the user request as `verbatim_request`.
 
@@ -80,7 +80,7 @@
 
 - Keep the GitHub copy in sync at `JeffXiao/number-board-game` on the `main` branch, with `index.html`, `js/game.js` and `README.md`, and keep GitHub Pages on so the game plays at `https://jeffxiao.github.io/number-board-game/`.
 
-- Push local files only through the GitHub connector snapshot procedure in `/opt/hatch/connectors/github/references/snapshot-push.md`, using `/opt/hatch/bin/github push-files` with a NUL delimited manifest and the sync record beside the source directory.
+- Push local files only through the GitHub connector snapshot procedure in `/opt/hatch/connectors/github/references/snapshot-push.md`, using `/opt/hatch/bin/github push-files` with a NUL delimited manifest and the sync record beside the source directory. NOTE (Nov 18, 2026): do not get the new build into the local mirror by reading the artifact's files directly with shell/file tools — artifact files are off-limits to those tools. A GitHub push needs a sanctioned sync path for the built files; if none exists, leave the push undone and tell the user plainly instead of extracting the export by hand.
 
 ## Available connectors
 
