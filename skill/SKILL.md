@@ -44,9 +44,9 @@
 
 - Give no icon button a highlight background or a dimmed state, and show a state change only through the icon graphic itself, such as a muted speaker or a play icon.
 
-- Use a circular arrow for reset, a speaker for sound, a pause icon that turns into a play icon while paused, a lightbulb for hints, a sort icon for sorting and a curved arrow for undo.
+- Use a circular arrow for reset, a speaker for sound, a pause icon that turns into a play icon while paused, a lightbulb for hints, a sort icon for sorting, a curved arrow for undo, and expand arrows for fullscreen that turn into collapse arrows while fullscreen.
 
-- Keep the top bar as reset, sound, pause and hint icons, and keep the sort and undo icons beside the number bank.
+- Keep the top bar as reset, sound, pause, hint and fullscreen icons, and keep the sort and undo icons beside the number bank.
 
 - Remove the new puzzle button from the top bar and keep it only in the completion popup and the 3 mistake popup.
 
