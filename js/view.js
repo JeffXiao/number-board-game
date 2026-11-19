@@ -123,6 +123,15 @@
     function buildBank() {
       let s = game.state();
       bankSignature = currentBankSignature(s);
+      /* bank layout via custom properties, like the board's --cols:
+         one row of tiles spanning the full board width when the
+         count stays tappable (<= 11), otherwise two balanced rows;
+         --bank-cols-sm caps a row at six tiles on narrow screens */
+      let count = s.tiles.length;
+      let cols = count > 11 ? Math.ceil(count / 2) : count;
+      let smallRows = Math.ceil(count / 6);
+      els.bank.style.setProperty("--bank-cols", String(cols));
+      els.bank.style.setProperty("--bank-cols-sm", String(Math.ceil(count / smallRows)));
       els.bank.innerHTML = "";
       tileElements = s.tiles.map(function (tile, index) {
         let el = document.createElement("button");

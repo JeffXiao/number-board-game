@@ -157,7 +157,7 @@ body.is-fullscreen .board {
   margin: 0 auto;
 }
 :fullscreen .bank,
-body.is-fullscreen .bank { justify-content: center; }
+body.is-fullscreen .bank { width: 100%; }
 /* ---------- expanded fallback ----------
    Used when the Fullscreen API is denied (the app frame reports
    fullscreenEnabled === false): the game instead fills the whole
@@ -390,26 +390,46 @@ body.is-expanded .wrap {
 }
 .bank-head .t { font-size: 15px; font-weight: 400; }
 .bank-head .p { font-size: 13.5px; color: var(--ink-soft); }
+/* The bank spans exactly the board panel's width and the tiles
+   stretch to fill it: the view sets --bank-cols from the tile
+   count so a round's tiles sit on one row whenever they stay
+   tappable at that count (Easy 8, Medium 11), and on two balanced
+   rows for the larger banks (Hard 8+8, Expert 11+10) — every row
+   edge-to-edge, parallel with the board above it. */
 .bank {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(var(--bank-cols, 11), 1fr);
   gap: 9px;
+  width: 100%;
+}
+/* Narrow screens: one row would shrink the tiles below a usable
+   tap size, so the view's --bank-cols-sm rebalances the same bank
+   into full-width rows of at most six tiles instead. */
+@media (max-width: 600px) {
+  .bank {
+    grid-template-columns: repeat(var(--bank-cols-sm, 6), 1fr);
+    gap: 7px;
+  }
 }
 .tile {
   appearance: none;
-  min-width: 54px;
+  min-width: 0;
+  width: 100%;
   height: 54px;
-  padding: 0 10px;
+  padding: 0 2px;
   border-radius: 9px;
   border: 1.5px solid var(--tile-line);
   background: var(--tile-bg);
   color: var(--tile-ink);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 400;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+@media (max-width: 600px) {
+  .tile { font-size: 24px; }
 }
 .tile:hover { transform: translateY(-1px); }
 .tile.used { opacity: 0.18; pointer-events: none; }
@@ -460,6 +480,10 @@ body.is-expanded .wrap {
 .undo-btn svg { width: 19px; height: 19px; display: block; flex: none; }
 .undo-btn:disabled { opacity: 0.38; cursor: default; }
 .undo-btn:disabled:hover { border-color: var(--line); }
+/* fullscreen now sits in the bank tools beside sort and undo:
+   match their smaller height and icon size there */
+.bank-tools .fullscreen-btn { min-height: 34px; padding: 5px 9px; }
+.bank-tools .fullscreen-btn svg { width: 19px; height: 19px; }
 
 /* ---------- error toast ---------- */
 .toast {
