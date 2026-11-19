@@ -183,6 +183,72 @@
       setButtonLabel(els.sound, enabled ? translate("soundOffLabel") : translate("soundOnLabel"));
     }
 
+    /* ---------- fullscreen ----------
+       The button is always shown. An earlier version hid it when
+       document.fullscreenEnabled was false — but that is exactly
+       what the sandboxed app frame reports, so the icon vanished
+       where the game is actually played. Tapping tries the real
+       Fullscreen API first; the state is read back from
+       document.fullscreenElement (on fullscreenchange), so leaving
+       with Esc or the browser UI restores the expand glyph too.
+       Where the API is missing or the request is denied — a frame
+       without fullscreen permission — the tap falls back to an
+       expanded in-page mode: the game fills the whole frame, and
+       the same button (or Esc) collapses it back. */
+    let expandedFallback = false;
+    function isFullscreen() { return !!document.fullscreenElement; }
+    function fullscreenActive() { return isFullscreen() || expandedFallback; }
+    function updateFullscreenButton() {
+      if (!els.fullscreen) return;
+      let active = fullscreenActive();
+      els.fullscreen.setAttribute("aria-pressed", active ? "true" : "false");
+      document.body.classList.toggle("is-fullscreen", active);
+      document.body.classList.toggle("is-expanded", expandedFallback);
+      setButtonLabel(els.fullscreen, active ? translate("fullscreenExitLabel") : translate("fullscreenLabel"));
+    }
+    function syncFullscreenButton() {
+      /* never hidden — see the note above */
+      updateFullscreenButton();
+    }
+    function setExpandedFallback(on) {
+      expandedFallback = on;
+      updateFullscreenButton();
+      /* the layout just changed size: refit the board type once
+         the browser has settled the new layout */
+      global.setTimeout(fitBoardFont, 0);
+    }
+    function toggleFullscreen() {
+      if (isFullscreen()) {
+        if (!document.exitFullscreen) return;
+        try {
+          let exiting = document.exitFullscreen();
+          if (exiting && exiting.catch) exiting.catch(function () { /* denied: stay as we are */ });
+        } catch (error) { /* denied: stay as we are */ }
+        return;
+      }
+      if (expandedFallback) { setExpandedFallback(false); return; }
+      let request = document.documentElement && document.documentElement.requestFullscreen;
+      if (!request) { setExpandedFallback(true); return; }
+      try {
+        let entering = request.call(document.documentElement);
+        if (entering && entering.catch) {
+          entering.catch(function () { setExpandedFallback(true); });
+        }
+      } catch (error) { setExpandedFallback(true); }
+    }
+    function onFullscreenChange() {
+      updateFullscreenButton();
+      /* the viewport just changed size: refit the board type once
+         the browser has settled the new layout */
+      global.setTimeout(fitBoardFont, 0);
+    }
+    function onFullscreenKeydown(event) {
+      /* Esc leaves the expanded fallback, mirroring native fullscreen */
+      if (expandedFallback && (event.key === "Escape" || event.key === "Esc")) {
+        setExpandedFallback(false);
+      }
+    }
+
     /* ---------- board font sizing (dynamic value via custom property) ---------- */
     function fitBoardFont() {
       if (!game.hasState()) return;
@@ -286,6 +352,7 @@
         button.setAttribute("aria-checked", button.dataset.lang === i18n.language() ? "true" : "false");
       });
       updateSoundButton();
+      syncFullscreenButton();
       boardSignature = null; /* aria labels live on cells/tiles: force one full build */
       bankSignature = null;
       sync({});
@@ -323,6 +390,9 @@
       });
       drag.attach();
       global.addEventListener("resize", fitBoardFont);
+      document.addEventListener("fullscreenchange", onFullscreenChange);
+      document.addEventListener("keydown", onFullscreenKeydown);
+      syncFullscreenButton();
     }
 
     return Object.freeze({
@@ -330,6 +400,8 @@
       applyLanguage: applyLanguage,
       attachInteractions: attachInteractions,
       updateSoundButton: updateSoundButton,
+      toggleFullscreen: toggleFullscreen,
+      updateFullscreenButton: updateFullscreenButton,
       fitBoardFont: fitBoardFont,
       cellElement: cellElement,
       setDropTarget: setDropTarget

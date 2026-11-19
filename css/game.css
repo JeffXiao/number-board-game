@@ -123,6 +123,56 @@ body {
 .pause-btn .icon-play { display: none; }
 .pause-btn.paused .icon-pause { display: none; }
 .pause-btn.paused .icon-play { display: block; }
+/* fullscreen: like the other icon buttons, no highlight or dimmed
+   state — only the glyph swaps between expand and collapse */
+.fullscreen-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; }
+.fullscreen-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+.fullscreen-btn .icon-fullscreen-exit { display: none; }
+.fullscreen-btn[aria-pressed="true"] .icon-fullscreen { display: none; }
+.fullscreen-btn[aria-pressed="true"] .icon-fullscreen-exit { display: block; }
+/* ---------- fullscreen layout ----------
+   Applied both via the :fullscreen pseudo-class (the fullscreen
+   element is <html>) and via the .is-fullscreen class the view
+   toggles on <body> from fullscreenchange, so the layout follows
+   the real state however it was entered or left (button, Esc, F11). */
+:fullscreen { background: var(--bg); overflow-x: hidden; overflow-y: auto; }
+:fullscreen .wrap,
+body.is-fullscreen .wrap {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 760px;
+  padding-top: max(18px, env(safe-area-inset-top));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
+}
+:fullscreen .board-shell,
+body.is-fullscreen .board-shell { width: 100%; }
+:fullscreen .board,
+body.is-fullscreen .board {
+  max-width: min(100%, calc(var(--cols, 9) * 72px));
+  margin: 0 auto;
+}
+:fullscreen .bank,
+body.is-fullscreen .bank { justify-content: center; }
+/* ---------- expanded fallback ----------
+   Used when the Fullscreen API is denied (the app frame reports
+   fullscreenEnabled === false): the game instead fills the whole
+   frame in-page. The wrap goes fixed full-frame while the
+   .is-fullscreen rules above — toggled together with .is-expanded —
+   keep the centred column layout; the button or Esc collapses it. */
+body.is-expanded { overflow: hidden; }
+body.is-expanded .wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  margin: 0 auto;
+  overflow-y: auto;
+  background: var(--bg);
+}
 /* ---------- language ---------- */
 .lang-wrap { position: relative; }
 .lang-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; gap: 6px; }

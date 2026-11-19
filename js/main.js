@@ -32,6 +32,7 @@
     sound: element("soundBtn"),
     hint: element("hintBtn"),
     reset: element("resetBtn"),
+    fullscreen: element("fullscreenBtn"),
     langButton: element("langBtn")
   };
 
@@ -59,6 +60,7 @@
   elements.sort.addEventListener("click", function () { game.toggleSort(); });
   elements.pause.addEventListener("click", function () { game.togglePause(); });
   elements.hint.addEventListener("click", function () { game.useHint(); });
+  elements.fullscreen.addEventListener("click", function () { view.toggleFullscreen(); });
   element("resumeBtn").addEventListener("click", function () { game.resume(); });
 
   /* ---------- end overlay ---------- */
