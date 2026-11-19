@@ -1,0 +1,435 @@
+button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2rem; }
+
+:root {
+  --bg: #f8f4ea;
+  --panel: #fffdf6;
+  --ink: #33302a;
+  --ink-soft: #6f6a5c;
+  --line: #ddd3b8;
+  --given-bg: #f6dc9a;
+  --given-line: #d3af55;
+  --given-ink: #3d2f10;
+  --op-bg: #f1cf7e;
+  --blank-bg: #fffef9;
+  --blank-line: #c9bd97;
+  --filled-bg: #dcf2e1;
+  --filled-line: #8fc7a0;
+  --filled-ink: #166534;
+  --accent: #d97706;
+  --accent-ink: #ffffff;
+  --tile-bg: #e7f6ec;
+  --tile-line: #79b78d;
+  --tile-ink: #14713c;
+  --danger: #dc2626;
+  --danger-bg: #fde8e8;
+  --sort-ink: #3355c4;
+  --overlay-bg: rgba(248, 244, 234, 0.97);
+  --shadow: 0 10px 28px rgba(93, 74, 28, 0.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191a16;
+    --panel: #22241e;
+    --ink: #ece7d8;
+    --ink-soft: #a79f8a;
+    --line: #454133;
+    --given-bg: #66531c;
+    --given-line: #8a6f27;
+    --given-ink: #ffe9a8;
+    --op-bg: #59481a;
+    --blank-bg: #26281f;
+    --blank-line: #5b553d;
+    --filled-bg: #1d4630;
+    --filled-line: #2f7a4c;
+    --filled-ink: #a9e6bb;
+    --accent: #f59e0b;
+    --accent-ink: #231a02;
+    --tile-bg: #173326;
+    --tile-line: #2f7a4c;
+    --tile-ink: #8fe3ae;
+    --danger: #f87171;
+    --danger-bg: #4a1f1f;
+    --sort-ink: #93aef5;
+    --overlay-bg: rgba(25, 26, 22, 0.97);
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.num { font-family: "Baloo 2", "PingFang SC", "Microsoft YaHei", sans-serif; }
+.hidden { display: none !important; }
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 18px 14px 40px;
+}
+
+/* ---------- status bar ---------- */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.stats { display: flex; gap: 16px; align-items: baseline; font-size: 15px; }
+.stats .label { color: var(--ink-soft); font-size: 13px; margin-right: 4px; }
+.stats .val { font-weight: 400; font-size: 17px; }
+.stats .val.bad { color: var(--danger); }
+.actions { display: flex; gap: 8px; }
+.btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 400;
+}
+.actions { flex-wrap: wrap; }
+.reset-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; }
+.reset-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+.sound-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; }
+.sound-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+/* like the other icon buttons, the sound button itself never
+   highlights or dims — only the glyph changes when sound is off */
+.sound-btn .icon-sound-off { display: none; }
+.sound-btn[aria-pressed="false"] .icon-sound-on { display: none; }
+.sound-btn[aria-pressed="false"] .icon-sound-off { display: block; }
+.pause-btn, .hint-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; }
+.pause-btn svg, .hint-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+.pause-btn .icon-play { display: none; }
+.pause-btn.paused .icon-pause { display: none; }
+.pause-btn.paused .icon-play { display: block; }
+/* ---------- language ---------- */
+.lang-wrap { position: relative; }
+.lang-btn { color: var(--sort-ink); padding: 8px 10px; justify-content: center; gap: 6px; }
+.lang-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+.lang-btn .lang-code { font-size: 13px; line-height: 1; color: var(--ink); }
+.lang-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 4px;
+  min-width: 148px;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+.lang-menu.show { display: flex; }
+.lang-menu button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14.5px;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.lang-menu button:hover { background: var(--bg); }
+.lang-menu button[aria-checked="true"] { background: var(--given-bg); color: var(--given-ink); }
+.lang-menu button .check { visibility: hidden; font-size: 14px; }
+.lang-menu button[aria-checked="true"] .check { visibility: visible; }
+/* ---------- difficulty ---------- */
+.difficulties {
+  display: flex;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 14px;
+}
+.difficulties button {
+  flex: 1;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 15px;
+  padding: 8px 0;
+  min-height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.difficulties button[aria-pressed="true"] {
+  background: var(--given-bg);
+  color: var(--given-ink);
+  font-weight: 400;
+}
+
+/* ---------- board ---------- */
+.board-shell {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 14px 10px;
+  display: flex;
+  justify-content: center;
+}
+.board {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  /* board sizing is driven by custom properties the view sets with
+     setProperty — never by JS writing layout styles directly */
+  grid-template-columns: repeat(var(--cols, 9), 1fr);
+  max-width: calc(var(--cols, 9) * 58px);
+  font-size: var(--board-font, 20px);
+}
+.cell {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  border-radius: 5px;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cell.empty { visibility: hidden; }
+.cell.given {
+  background: var(--given-bg);
+  border: 1.5px solid var(--given-line);
+  color: var(--given-ink);
+}
+.cell.op, .cell.eq {
+  background: var(--op-bg);
+  border: 1.5px solid var(--given-line);
+  color: var(--given-ink);
+  /* operators (+ − × ÷ =) render larger than the numbers so they read clearly */
+  font-size: 1.38em;
+  font-weight: 400;
+}
+.cell.blank {
+  background: var(--blank-bg);
+  border: 1.5px solid var(--blank-line);
+  color: var(--filled-ink);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  width: 100%;
+}
+.cell.blank:hover { border-color: var(--accent); }
+/* no native focus ring on a cell: a fresh board shows no
+   outlined cell until the player taps one to select it */
+.cell.blank:focus { outline: none; }
+.cell.blank:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cell.blank.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--accent);
+}
+.cell.blank.filled {
+  background: var(--filled-bg);
+  border-color: var(--filled-line);
+  color: var(--filled-ink);
+  cursor: pointer;
+  /* placed numbers render at tile size so they don't shrink in the cell */
+  font-size: 1.22em;
+  font-weight: 400;
+}
+/* a filled number that makes its completed equation fail stays in
+   place, marked red until the player takes it back or replaces it */
+.cell.blank.filled.wrong {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.cell.blank.wrong-flash {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.shake { animation: shake 0.35s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .shake { animation: none; }
+}
+
+/* ---------- overlays ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: var(--overlay-bg);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+  z-index: 5;
+}
+.overlay.show { display: flex; }
+/* the reset confirmation sits above the pause / end overlays */
+#resetConfirmOverlay { z-index: 7; }
+.overlay h2 { margin: 0; font-size: 26px; font-weight: 400; }
+.overlay p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+.overlay .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.confetti-bit {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 6;
+  /* per-bit position, colour and timing arrive as custom properties */
+  left: var(--x, 50%);
+  background: var(--color, #d97706);
+  animation: fall var(--dur, 1.2s) ease-in var(--delay, 0s) forwards;
+}
+@keyframes fall {
+  to { transform: translateY(460px) rotate(560deg); opacity: 0.15; }
+}
+
+/* ---------- tile bank ---------- */
+.bank-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 20px 2px 10px;
+}
+.bank-head .t { font-size: 15px; font-weight: 400; }
+.bank-head .p { font-size: 13.5px; color: var(--ink-soft); }
+.bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.tile {
+  appearance: none;
+  min-width: 54px;
+  height: 54px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1.5px solid var(--tile-line);
+  background: var(--tile-bg);
+  color: var(--tile-ink);
+  font-size: 24px;
+  font-weight: 400;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile:hover { transform: translateY(-1px); }
+.tile.used { opacity: 0.18; pointer-events: none; }
+.tile.wrong-flash { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+.tile { touch-action: none; }
+.tile.dragging { opacity: 0.35; }
+.drag-ghost {
+  position: fixed;
+  z-index: 60;
+  width: 54px;
+  height: 54px;
+  border-radius: 9px;
+  border: 1.5px solid var(--tile-line);
+  background: var(--tile-bg);
+  color: var(--tile-ink);
+  font-size: 24px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: var(--shadow);
+}
+.cell.blank.drop-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent);
+  background: var(--filled-bg);
+}
+/* a filled cell can be dragged: back to the tile bank, or onto
+   another blank cell to move / swap its number */
+.cell.blank.filled { cursor: grab; touch-action: none; }
+.cell.blank.dragging { opacity: 0.35; }
+.bank.return-target {
+  box-shadow: 0 0 0 3px var(--accent);
+  background: var(--filled-bg);
+  border-radius: 12px;
+}
+.bank-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sort-btn { min-height: 34px; padding: 5px 9px; font-size: 13.5px; color: var(--sort-ink); justify-content: center; }
+.sort-btn svg { width: 19px; height: 19px; display: block; }
+.sort-btn[aria-pressed="true"] {
+  background: var(--given-bg);
+  border-color: var(--given-line);
+  font-weight: 400;
+}
+.undo-btn { color: var(--sort-ink); }
+.undo-btn svg { width: 19px; height: 19px; display: block; flex: none; }
+.undo-btn:disabled { opacity: 0.38; cursor: default; }
+.undo-btn:disabled:hover { border-color: var(--line); }
+
+/* ---------- error toast ---------- */
+.toast {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  background: var(--danger);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 9px 18px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 8;
+  text-align: center;
+  line-height: 1.4;
+  max-width: calc(100% - 20px);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
