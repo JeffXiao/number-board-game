@@ -54,6 +54,8 @@
 
 - Size numbers placed in cells to match the number tiles, and size the operator and equals symbols near 1.4 times the cell text.
 
+- The number bank spans the same width as the board, its tiles stretching to fill it edge to edge — all on one row when the tile count allows (Easy 8, Medium 11); larger banks use two balanced full-width rows (Nov 19, 2026, at the user's request — the bank was wrapping with tiles spilling onto a second row).
+
 ## Play sounds
 
 - Play a casino style placement sound on every placement, made of two chip clacks and one coin ding.
