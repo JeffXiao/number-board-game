@@ -118,7 +118,7 @@
 
     /* ---------- tile bank ---------- */
     function currentBankSignature(s) {
-      return s.tiles.map(function (tile) { return tile.id; }).join(",") + ":" + i18n.language();
+      return s.tiles.map(function (tile) { return tile.id + "=" + tile.value; }).join(",") + ":" + i18n.language();
     }
     function buildBank() {
       let s = game.state();
