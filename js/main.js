@@ -25,6 +25,8 @@
     resetConfirm: element("resetConfirmOverlay"),
     endTitle: element("endTitle"),
     endText: element("endText"),
+    endSolutionWrap: element("endSolutionWrap"),
+    endSolution: element("endSolution"),
     retry: element("retryBtn"),
     pause: element("pauseBtn"),
     sort: element("sortBtn"),

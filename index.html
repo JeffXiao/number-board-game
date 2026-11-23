@@ -66,12 +66,18 @@
           </div>
         </div>
 
-        <div class="overlay" id="endOverlay">
-          <h2 id="endTitle">Done!</h2>
-          <p id="endText"></p>
-          <div class="row">
-            <button class="btn" id="retryBtn" type="button">Try again</button>
-            <button class="btn primary" id="againBtn" type="button">New puzzle</button>
+        <div class="overlay end-overlay" id="endOverlay">
+          <div class="end-inner">
+            <div class="end-solution-wrap hidden" id="endSolutionWrap">
+              <p class="end-solution-label" id="endSolutionLabel"></p>
+              <div class="end-solution num" id="endSolution"></div>
+            </div>
+            <h2 id="endTitle">Done!</h2>
+            <p id="endText"></p>
+            <div class="row">
+              <button class="btn" id="retryBtn" type="button">Try again</button>
+              <button class="btn primary" id="againBtn" type="button">New puzzle</button>
+            </div>
           </div>
         </div>
 

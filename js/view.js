@@ -28,7 +28,9 @@
     let tileElements = [];      /* aligned with state.tiles order */
     let boardSignature = null;
     let bankSignature = null;
+    let solutionSignature = null;
     let lastFontPx = null;
+    let lastSolutionFontPx = null;
     let toastTimer = null;
     let dropTargetKey = null;
 
@@ -169,21 +171,77 @@
       els.sort.setAttribute("aria-pressed", sortedNow ? "true" : "false");
       setButtonLabel(els.sort, sortedNow ? translate("sortRestoreLabel") : translate("sortLabel"));
     }
+    /* ---------- the completed-answer board on the end overlay ----------
+       On a win only, the overlay shows the just-finished board above
+       the result text: givens keep their yellow style, numbers the
+       player placed use the green .solution-filled style. The build
+       is guarded by a round/language signature so a later sync
+       doesn't rebuild it; a language change clears the signature
+       (see applyLanguage) so it renders again in the new language. */
+    function buildEndSolution() {
+      if (!els.endSolution) return;
+      let s = game.state();
+      let signature = game.roundId() + ":" + i18n.language();
+      if (solutionSignature === signature) return;
+      solutionSignature = signature;
+      els.endSolution.innerHTML = "";
+      els.endSolution.style.setProperty("--cols", String(s.cols));
+      for (let r = 0; r < s.rows; r++) {
+        for (let c = 0; c < s.cols; c++) {
+          let k = MC.util.cellKey(r, c);
+          let cell = s.cellMap[k];
+          let el = document.createElement("div");
+          if (!cell) el.className = "cell empty";
+          else if (cell.type === "num" && cell.blank) {
+            el.className = "cell solution-filled";
+            el.textContent = cell.filled ? String(cell.value) : "";
+          } else if (cell.type === "num") {
+            el.className = "cell given";
+            el.textContent = cell.answer;
+          } else {
+            el.className = "cell " + cell.type;
+            el.textContent = cell.symbol;
+          }
+          els.endSolution.appendChild(el);
+        }
+      }
+      fitSolutionFont();
+    }
+    function fitSolutionFont() {
+      if (!game.hasState() || !els.endSolution) return;
+      let width = els.endSolution.clientWidth;
+      if (!width) return;
+      let s = game.state();
+      let cellWidth = width / s.cols;
+      let wide = s.maxDigits >= CONFIG.WIDE_DIGIT_COUNT;
+      let factor = wide ? CONFIG.FONT_FACTOR_WIDE : CONFIG.FONT_FACTOR;
+      let minPx = wide ? CONFIG.FONT_MIN_WIDE_PX : CONFIG.FONT_MIN_PX;
+      let px = Math.max(minPx, Math.min(CONFIG.FONT_MAX_PX, cellWidth * factor));
+      if (px === lastSolutionFontPx) return;
+      lastSolutionFontPx = px;
+      els.endSolution.style.setProperty("--solution-font", px + "px");
+    }
     function updateOverlays() {
       els.pauseOverlay.classList.toggle("show", game.isPaused());
       els.resetConfirm.classList.toggle("show", game.isConfirmOpen());
       let over = game.isOver();
       els.endOverlay.classList.toggle("show", over);
-      if (!over) return;
+      if (!over) {
+        if (els.endSolutionWrap) els.endSolutionWrap.classList.add("hidden");
+        return;
+      }
       if (game.endKind() === "win") {
         els.endTitle.textContent = translate("winTitle");
         let s = game.state();
         els.endText.textContent = translate("winText")(game.formatTime(s.seconds), s.mistakes, s.hints);
         els.retry.classList.add("hidden");
+        if (els.endSolutionWrap) els.endSolutionWrap.classList.remove("hidden");
+        buildEndSolution();
       } else {
         els.endTitle.textContent = translate("mistakeTitle");
         els.endText.textContent = translate("mistakeText");
         els.retry.classList.remove("hidden");
+        if (els.endSolutionWrap) els.endSolutionWrap.classList.add("hidden");
       }
     }
     function updateSoundButton() {
@@ -273,6 +331,7 @@
       if (px === lastFontPx) return;
       lastFontPx = px;
       els.board.style.setProperty("--board-font", px + "px");
+      fitSolutionFont();
     }
 
     /* ---------- effects: toast, shake, confetti ---------- */
@@ -344,6 +403,8 @@
       setTextById("resumeBtn", translate("resume"));
       setTextById("retryBtn", translate("retry"));
       setTextById("againBtn", translate("again"));
+      setTextById("endSolutionLabel", translate("solutionLabel"));
+      if (els.endSolution) els.endSolution.setAttribute("aria-label", translate("solutionBoardLabel"));
       setTextById("resetConfirmTitle", translate("resetTitle"));
       setTextById("resetConfirmText", translate("resetText"));
       setTextById("resetYesBtn", translate("yes"));
@@ -364,6 +425,7 @@
       syncFullscreenButton();
       boardSignature = null; /* aria labels live on cells/tiles: force one full build */
       bankSignature = null;
+      solutionSignature = null; /* the answer board renders again in the new language */
       sync({});
     }
 
