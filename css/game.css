@@ -383,7 +383,10 @@ body.is-expanded .wrap {
   gap: 3px;
   width: 100%;
   grid-template-columns: repeat(var(--cols, 9), 1fr);
-  max-width: calc(var(--cols, 9) * 58px);
+  /* deliberately small: a recap of the finished board, not a second
+     full-size board — 32px cells (main board uses 58px) so the whole
+     win page (board + title + stats + button) fits without scrolling */
+  max-width: calc(var(--cols, 9) * 32px);
   margin: 0 auto;
   font-size: var(--solution-font, 20px);
 }
