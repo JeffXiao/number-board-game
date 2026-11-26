@@ -194,6 +194,121 @@
     button.setAttribute("aria-checked", button.dataset.lang === i18n.language() ? "true" : "false");
   });
 
+  /* ---------- register: a player name on this device ----------
+     The Register button at the bottom of the landing page opens
+     a popup where the player enters their name. MC.Player keeps
+     the registered names in localStorage — the same storage the
+     language, difficulties and finished Daily dates use; a web
+     page cannot write a file to the device directly. No
+     duplicate name is allowed: before saving, the entered name
+     is checked against the names already registered, and a name
+     that is taken shows an error inside the popup (and is not
+     saved) so the player can try a different one. Every string
+     follows the chosen language, like the rest of the page.
+     Once a name is registered on this device the user is
+     recognized, so the Register button is no longer shown —
+     renderRegister hides it and only the names list remains. */
+  const registerOverlay = element("registerOverlay");
+  const registerForm = element("registerForm");
+  const playerNameInput = element("playerNameInput");
+  const registerError = element("registerError");
+  function showRegisterError(message) {
+    if (!registerError) return;
+    registerError.textContent = message;
+    registerError.classList.remove("hidden");
+    if (playerNameInput) playerNameInput.setAttribute("aria-invalid", "true");
+  }
+  function clearRegisterError() {
+    if (registerError) { registerError.textContent = ""; registerError.classList.add("hidden"); }
+    if (playerNameInput) playerNameInput.removeAttribute("aria-invalid");
+  }
+  function renderRegister() {
+    let registered = MC.Player ? MC.Player.list() : [];
+    /* a recognized registered user needs no Register button:
+       once a name is saved on this device, the button stays
+       hidden and only the names list below shows. With no name
+       registered yet, the button is there to tap. */
+    let registerBtnEl = element("registerBtn");
+    if (registerBtnEl) registerBtnEl.classList.toggle("hidden", registered.length > 0);
+    let btnLabel = element("registerBtnLabel");
+    if (btnLabel) btnLabel.textContent = i18n.translate("register");
+    let title = element("registerTitle");
+    if (title) title.textContent = i18n.translate("registerTitle");
+    let nameLabel = element("registerNameLabel");
+    if (nameLabel) nameLabel.textContent = i18n.translate("registerLabel");
+    if (playerNameInput) playerNameInput.placeholder = i18n.translate("registerPlaceholder");
+    let hint = element("registerHint");
+    if (hint) hint.textContent = i18n.translate("registerHint");
+    let saveBtn = element("registerSaveBtn");
+    if (saveBtn) saveBtn.textContent = i18n.translate("registerSave");
+    let cancelBtn = element("registerCancelBtn");
+    if (cancelBtn) cancelBtn.textContent = i18n.translate("registerCancel");
+    let list = element("playerList");
+    if (list && MC.Player) {
+      if (registered.length) {
+        list.textContent = i18n.translate("registeredPlayers") + ": " + registered.join(", ");
+        list.classList.remove("hidden");
+      } else {
+        list.textContent = "";
+        list.classList.add("hidden");
+      }
+    }
+  }
+  function openRegister() {
+    if (!registerOverlay) return;
+    clearRegisterError();
+    if (playerNameInput) playerNameInput.value = "";
+    registerOverlay.classList.add("show");
+    if (playerNameInput) playerNameInput.focus();
+  }
+  function closeRegister() {
+    if (!registerOverlay) return;
+    registerOverlay.classList.remove("show");
+    let btn = element("registerBtn");
+    if (btn) btn.focus();
+  }
+  let registerBtn = element("registerBtn");
+  if (registerBtn) registerBtn.addEventListener("click", openRegister);
+  let registerCancelBtn = element("registerCancelBtn");
+  if (registerCancelBtn) registerCancelBtn.addEventListener("click", closeRegister);
+  if (registerOverlay) registerOverlay.addEventListener("click", function (event) {
+    /* a tap on the dimmed backdrop (not the dialog itself) closes */
+    if (event.target === registerOverlay) closeRegister();
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) closeRegister();
+  });
+  if (playerNameInput) playerNameInput.addEventListener("input", clearRegisterError);
+  if (registerForm) registerForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    if (!MC.Player || !playerNameInput) return;
+    let name = playerNameInput.value.trim();
+    if (!name) {
+      showRegisterError(i18n.translate("registerEmpty"));
+      playerNameInput.focus();
+      return;
+    }
+    if (MC.Player.isTaken(name)) {
+      /* already registered: error inside the popup, nothing
+         saved, the popup stays open for a different name */
+      showRegisterError(i18n.translate("registerTaken"));
+      playerNameInput.focus();
+      playerNameInput.select();
+      return;
+    }
+    if (!MC.Player.add(name)) {
+      showRegisterError(i18n.translate("registerTaken"));
+      return;
+    }
+    closeRegister();
+    renderRegister();
+  });
+  /* a language switch re-labels the button, the popup and the
+     registered-names list in place — view.applyLanguage calls
+     this, the same way it refreshes the calendar */
+  MC.refreshRegister = renderRegister;
+  renderRegister();
+
   /* ---------- daily puzzles & Main practice ----------
      The calendar hands a date key to MC.playDaily; the key waits
      here until the game view is on screen (nav.js calls

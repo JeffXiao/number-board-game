@@ -451,6 +451,9 @@
          title, weekday header and day labels are re-rendered in
          the new language (the month on show is kept) */
       if (global.MC && global.MC.refreshCalendar) global.MC.refreshCalendar();
+      /* the landing page's Register button, popup and registered
+         names list follow the language too */
+      if (global.MC && global.MC.refreshRegister) global.MC.refreshRegister();
       boardSignature = null; /* aria labels live on cells/tiles: force one full build */
       bankSignature = null;
       endSolutionSignature = null;

@@ -14,7 +14,7 @@
   </head>
   <body>
     
-    <!-- main menu page (the Daily / Main landing page) -->
+    <!-- main menu page (the Daily / Practice landing page) -->
 <section id="viewMain">
       <main class="home-wrap">
         <!-- language and sound live on the landing page (moved
@@ -61,17 +61,53 @@
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#grid"></use></svg>
             </span>
             <span class="menu-text">
-              <span class="menu-label" id="menuMainLabel">Main</span>
+              <span class="menu-label" id="menuMainLabel">Practice</span>
               <span class="menu-desc" id="menuMainDesc">Play anytime, any difficulty</span>
             </span>
             <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
           </a>
         </nav>
+
+        <!-- register: a player name kept on this device only.
+             The button sits at the bottom of the landing page;
+             tapping it opens the popup below, where the player
+             enters a name. main.js wires it to MC.Player, which
+             stores the names in localStorage and refuses a name
+             that is already registered. Once a name is registered
+             the user is recognized, so the button is hidden and
+             only the names list below remains. -->
+        <div class="register-area">
+          <button class="btn register-btn" id="registerBtn" type="button" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#person"></use></svg>
+            <span id="registerBtnLabel">Register</span>
+          </button>
+          <p class="player-list hidden" id="playerList"></p>
+        </div>
       </main>
+
+      <!-- register popup: the name is entered here; a name that
+           is already registered shows its error inside this
+           popup (in #registerError) and nothing is saved -->
+      <div class="register-overlay" id="registerOverlay">
+        <div class="register-dialog" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+          <h2 id="registerTitle">Register</h2>
+          <form id="registerForm" novalidate>
+            <label class="register-label" id="registerNameLabel" for="playerNameInput">Player name</label>
+            <input class="register-input" id="playerNameInput" type="text" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="Your name" aria-describedby="registerError" />
+            <p class="register-error hidden" id="registerError" role="alert"></p>
+            <p class="register-hint" id="registerHint">Kept on this device only.</p>
+            <div class="register-actions">
+              <button class="btn" id="registerCancelBtn" type="button">Cancel</button>
+              <button class="btn primary" id="registerSaveBtn" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </section>
 
     <script src="js/config.js"></script>
     <script src="js/i18n.js"></script>
+    <script src="js/player.js"></script>
     <script src="js/audio.js"></script>
     <!-- Landing wiring (the menu page's own script): the shared
          main.js cannot load here — it wires game controls that do
@@ -115,7 +151,101 @@
           soundButton.setAttribute("aria-label", label);
           soundButton.title = label;
         }
+        renderRegister();
       }
+      /* Register: a player name kept on this device only (mirrors
+         main.js's renderRegister/openRegister/submit). Once a name
+         is registered the user is recognized, so the button hides
+         and only the names list below remains. A name that is
+         already registered shows its error inside the popup and
+         is not saved. */
+      var registerOverlay = element("registerOverlay");
+      var registerForm = element("registerForm");
+      var playerNameInput = element("playerNameInput");
+      var registerError = element("registerError");
+      function showRegisterError(message) {
+        if (!registerError) return;
+        registerError.textContent = message;
+        registerError.classList.remove("hidden");
+        if (playerNameInput) playerNameInput.setAttribute("aria-invalid", "true");
+      }
+      function clearRegisterError() {
+        if (registerError) { registerError.textContent = ""; registerError.classList.add("hidden"); }
+        if (playerNameInput) playerNameInput.removeAttribute("aria-invalid");
+      }
+      function renderRegister() {
+        var Player = MC.Player;
+        var registered = Player ? Player.list() : [];
+        var registerBtnEl = element("registerBtn");
+        if (registerBtnEl) registerBtnEl.classList.toggle("hidden", registered.length > 0);
+        var setText = function (id, key) {
+          var el = element(id);
+          if (el) el.textContent = i18n.translate(key);
+        };
+        setText("registerBtnLabel", "register");
+        setText("registerTitle", "registerTitle");
+        setText("registerNameLabel", "registerLabel");
+        if (playerNameInput) playerNameInput.placeholder = i18n.translate("registerPlaceholder");
+        setText("registerHint", "registerHint");
+        setText("registerSaveBtn", "registerSave");
+        setText("registerCancelBtn", "registerCancel");
+        var list = element("playerList");
+        if (list && Player) {
+          if (registered.length) {
+            list.textContent = i18n.translate("registeredPlayers") + ": " + registered.join(", ");
+            list.classList.remove("hidden");
+          } else {
+            list.textContent = "";
+            list.classList.add("hidden");
+          }
+        }
+      }
+      function openRegister() {
+        if (!registerOverlay) return;
+        clearRegisterError();
+        if (playerNameInput) playerNameInput.value = "";
+        registerOverlay.classList.add("show");
+        if (playerNameInput) playerNameInput.focus();
+      }
+      function closeRegister() {
+        if (!registerOverlay) return;
+        registerOverlay.classList.remove("show");
+        var btn = element("registerBtn");
+        if (btn) btn.focus();
+      }
+      var registerBtn = element("registerBtn");
+      if (registerBtn) registerBtn.addEventListener("click", openRegister);
+      var registerCancelBtn = element("registerCancelBtn");
+      if (registerCancelBtn) registerCancelBtn.addEventListener("click", closeRegister);
+      if (registerOverlay) registerOverlay.addEventListener("click", function (event) {
+        if (event.target === registerOverlay) closeRegister();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) closeRegister();
+      });
+      if (playerNameInput) playerNameInput.addEventListener("input", clearRegisterError);
+      if (registerForm) registerForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (!MC.Player || !playerNameInput) return;
+        var name = playerNameInput.value.trim();
+        if (!name) {
+          showRegisterError(i18n.translate("registerEmpty"));
+          playerNameInput.focus();
+          return;
+        }
+        if (MC.Player.isTaken(name)) {
+          showRegisterError(i18n.translate("registerTaken"));
+          playerNameInput.focus();
+          playerNameInput.select();
+          return;
+        }
+        if (!MC.Player.add(name)) {
+          showRegisterError(i18n.translate("registerTaken"));
+          return;
+        }
+        closeRegister();
+        renderRegister();
+      });
       function closeLangMenu() {
         langMenu.classList.remove("show");
         langButton.setAttribute("aria-expanded", "false");

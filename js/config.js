@@ -24,6 +24,13 @@
        DAILY_DIFFICULTY above are the first-visit fallbacks */
     DIFFICULTY_STORAGE_KEY: "math-crossword-difficulty",
 
+    /* the registered player names: just names kept on this
+       device, in localStorage alongside the preferences above —
+       no account, nothing leaves the device. Stored as a JSON
+       array of names; a name may only be registered once */
+    PLAYER_STORAGE_KEY: "math-crossword-player",
+    PLAYER_NAME_MAX_LENGTH: 24,
+
     /* timing / feedback */
     TIMER_INTERVAL_MS: 1000,
     TOAST_MS: 1700,

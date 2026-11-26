@@ -65,13 +65,48 @@
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#grid"></use></svg>
             </span>
             <span class="menu-text">
-              <span class="menu-label" id="menuMainLabel">Main</span>
+              <span class="menu-label" id="menuMainLabel">Practice</span>
               <span class="menu-desc" id="menuMainDesc">Play anytime, any difficulty</span>
             </span>
             <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
           </a>
         </nav>
+
+        <!-- register: a player name kept on this device only.
+             The button sits at the bottom of the landing page;
+             tapping it opens the popup below, where the player
+             enters a name. main.js wires it to MC.Player, which
+             stores the names in localStorage and refuses a name
+             that is already registered. Once a name is registered
+             the user is recognized, so the button is hidden and
+             only the names list below remains. -->
+        <div class="register-area">
+          <button class="btn register-btn" id="registerBtn" type="button" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#person"></use></svg>
+            <span id="registerBtnLabel">Register</span>
+          </button>
+          <p class="player-list hidden" id="playerList"></p>
+        </div>
       </main>
+
+      <!-- register popup: the name is entered here; a name that
+           is already registered shows its error inside this
+           popup (in #registerError) and nothing is saved -->
+      <div class="register-overlay" id="registerOverlay">
+        <div class="register-dialog" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+          <h2 id="registerTitle">Register</h2>
+          <form id="registerForm" novalidate>
+            <label class="register-label" id="registerNameLabel" for="playerNameInput">Player name</label>
+            <input class="register-input" id="playerNameInput" type="text" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="Your name" aria-describedby="registerError" />
+            <p class="register-error hidden" id="registerError" role="alert"></p>
+            <p class="register-hint" id="registerHint">Kept on this device only.</p>
+            <div class="register-actions">
+              <button class="btn" id="registerCancelBtn" type="button">Cancel</button>
+              <button class="btn primary" id="registerSaveBtn" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </section>
 
     <!-- ============ the game (game.html) ============ -->
@@ -199,10 +234,10 @@
     </section>
 
     <!-- Modules split by concern, loaded in dependency order as
-         classic scripts (the artifact runtime serves them from
+         classic scripts (the game serves them from
          js/): config -> i18n -> ops -> puzzle -> solver ->
-         daily -> audio -> state -> drag -> view -> main ->
-         calendar -> nav. main.js wires the game but defers its
+         daily -> player -> audio -> state -> drag -> view ->
+         main -> calendar -> nav. main.js wires the game but defers its
          first puzzle while the menu view exists; nav.js boots it
          when the game view opens. -->
     <script src="js/config.js"></script>
@@ -211,6 +246,7 @@
     <script src="js/puzzle.js"></script>
     <script src="js/solver.js"></script>
     <script src="js/daily.js"></script>
+    <script src="js/player.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/state.js"></script>
     <script src="js/drag.js"></script>

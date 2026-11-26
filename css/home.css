@@ -16,6 +16,8 @@
   --accent: #d97706;
   --tile-bg: #e7f6ec;
   --tile-ink: #14713c;
+  --danger: #dc2626;
+  --danger-bg: #fde8e8;
   --shadow: 0 10px 28px rgba(93, 74, 28, 0.14);
 }
 @media (prefers-color-scheme: dark) {
@@ -30,6 +32,8 @@
     --accent: #f59e0b;
     --tile-bg: #173326;
     --tile-ink: #8fe3ae;
+    --danger: #f87171;
+    --danger-bg: #4a1f1f;
     --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
   }
 }
@@ -259,4 +263,105 @@ button.cal-day.future {
 button.cal-day.done { background: var(--line); border-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   button.cal-day.playable:active { transform: none; }
+}
+
+/* ---------- register (landing page, bottom) ----------
+   The Register button sits below the Daily / Practice cards.
+   Tapping it opens a popup (a fixed overlay with a centred
+   dialog, in the same panel style as the rest of the page)
+   where the player enters a name. The name is kept on this
+   device only; the names registered so far are listed under
+   the button. A duplicate name is refused with an error shown
+   inside the popup, never saved. */
+.register-area {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.register-btn {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-size: 16.5px;
+  min-height: 48px;
+}
+.register-btn svg { width: 20px; height: 20px; display: block; flex: none; }
+.register-btn:active { transform: translateY(1px); }
+@media (prefers-reduced-motion: reduce) {
+  .register-btn:active { transform: none; }
+}
+.player-list {
+  margin: 0;
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.register-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(30, 26, 16, 0.42);
+}
+.register-overlay.show { display: flex; }
+.register-dialog {
+  width: 100%;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 22px 20px 20px;
+}
+.register-dialog h2 {
+  margin: 0 0 14px;
+  font-family: "Baloo 2", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.register-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.register-label { font-size: 14px; color: var(--ink-soft); }
+.register-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 46px;
+}
+.register-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.register-input[aria-invalid="true"] { border-color: var(--danger); }
+.register-error {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.register-hint { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.register-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
 }
