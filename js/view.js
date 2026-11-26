@@ -28,9 +28,8 @@
     let tileElements = [];      /* aligned with state.tiles order */
     let boardSignature = null;
     let bankSignature = null;
-    let solutionSignature = null;
+    let endSolutionSignature = null;
     let lastFontPx = null;
-    let lastSolutionFontPx = null;
     let toastTimer = null;
     let dropTargetKey = null;
 
@@ -171,33 +170,35 @@
       els.sort.setAttribute("aria-pressed", sortedNow ? "true" : "false");
       setButtonLabel(els.sort, sortedNow ? translate("sortRestoreLabel") : translate("sortLabel"));
     }
-    /* ---------- the completed-answer board on the end overlay ----------
-       On a win only, the overlay shows the just-finished board above
-       the result text: givens keep their yellow style, numbers the
-       player placed use the green .solution-filled style. The build
-       is guarded by a round/language signature so a later sync
-       doesn't rebuild it; a language change clears the signature
-       (see applyLanguage) so it renders again in the new language. */
+    /* ---------- completed answer on the end screen ----------
+       On a win the finished board is shown at the top of the end
+       overlay, above the "All correct!" title and the time /
+       mistakes line, which move down to make room for it. The
+       review board is read-only: givens keep their yellow style
+       and the numbers the player placed keep the green filled
+       style, exactly as they finished the board. */
     function buildEndSolution() {
       if (!els.endSolution) return;
       let s = game.state();
-      let signature = game.roundId() + ":" + i18n.language();
-      if (solutionSignature === signature) return;
-      solutionSignature = signature;
+      let signature = game.roundId() + ":" + s.rows + "x" + s.cols + ":" + i18n.language();
+      if (signature === endSolutionSignature) return;
+      endSolutionSignature = signature;
       els.endSolution.innerHTML = "";
       els.endSolution.style.setProperty("--cols", String(s.cols));
+      els.endSolution.style.setProperty("--solution-font", s.maxDigits >= CONFIG.WIDE_DIGIT_COUNT ? "12px" : "14.5px");
       for (let r = 0; r < s.rows; r++) {
         for (let c = 0; c < s.cols; c++) {
           let k = MC.util.cellKey(r, c);
           let cell = s.cellMap[k];
           let el = document.createElement("div");
-          if (!cell) el.className = "cell empty";
-          else if (cell.type === "num" && cell.blank) {
-            el.className = "cell solution-filled";
-            el.textContent = cell.filled ? String(cell.value) : "";
+          if (!cell) {
+            el.className = "cell empty";
           } else if (cell.type === "num") {
-            el.className = "cell given";
-            el.textContent = cell.answer;
+            el.className = "cell " + (cell.blank ? "solution-filled" : "given");
+            /* show the board exactly as the player finished it:
+               their placed numbers, not the generator's originals
+               (commutative placements can legitimately differ) */
+            el.textContent = cell.blank && cell.filled ? cell.value : cell.answer;
           } else {
             el.className = "cell " + cell.type;
             el.textContent = cell.symbol;
@@ -205,21 +206,6 @@
           els.endSolution.appendChild(el);
         }
       }
-      fitSolutionFont();
-    }
-    function fitSolutionFont() {
-      if (!game.hasState() || !els.endSolution) return;
-      let width = els.endSolution.clientWidth;
-      if (!width) return;
-      let s = game.state();
-      let cellWidth = width / s.cols;
-      let wide = s.maxDigits >= CONFIG.WIDE_DIGIT_COUNT;
-      let factor = wide ? CONFIG.FONT_FACTOR_WIDE : CONFIG.FONT_FACTOR;
-      let minPx = wide ? CONFIG.FONT_MIN_WIDE_PX : CONFIG.FONT_MIN_PX;
-      let px = Math.max(minPx, Math.min(CONFIG.FONT_MAX_PX, cellWidth * factor));
-      if (px === lastSolutionFontPx) return;
-      lastSolutionFontPx = px;
-      els.endSolution.style.setProperty("--solution-font", px + "px");
     }
     function updateOverlays() {
       els.pauseOverlay.classList.toggle("show", game.isPaused());
@@ -230,18 +216,26 @@
         if (els.endSolutionWrap) els.endSolutionWrap.classList.add("hidden");
         return;
       }
+      /* A finished daily round is done for the day: there is no
+         next puzzle to offer, so the "New puzzle" button is hidden
+         on a daily win. Rounds started from Main (no daily key)
+         keep it, so the player can play on. A daily loss is not
+         finished — Try again stays, as before. */
+      let againBtn = els.again || document.getElementById("againBtn");
+      let isDailyWin = game.endKind() === "win" && !!(game.dailyKey && game.dailyKey());
+      if (againBtn) againBtn.classList.toggle("hidden", isDailyWin);
       if (game.endKind() === "win") {
+        buildEndSolution();
+        if (els.endSolutionWrap) els.endSolutionWrap.classList.remove("hidden");
         els.endTitle.textContent = translate("winTitle");
         let s = game.state();
         els.endText.textContent = translate("winText")(game.formatTime(s.seconds), s.mistakes, s.hints);
         els.retry.classList.add("hidden");
-        if (els.endSolutionWrap) els.endSolutionWrap.classList.remove("hidden");
-        buildEndSolution();
       } else {
+        if (els.endSolutionWrap) els.endSolutionWrap.classList.add("hidden");
         els.endTitle.textContent = translate("mistakeTitle");
         els.endText.textContent = translate("mistakeText");
         els.retry.classList.remove("hidden");
-        if (els.endSolutionWrap) els.endSolutionWrap.classList.add("hidden");
       }
     }
     function updateSoundButton() {
@@ -331,7 +325,6 @@
       if (px === lastFontPx) return;
       lastFontPx = px;
       els.board.style.setProperty("--board-font", px + "px");
-      fitSolutionFont();
     }
 
     /* ---------- effects: toast, shake, confetti ---------- */
@@ -371,6 +364,29 @@
       if (effects.confetti) spawnConfetti();
     }
 
+    /* ---------- back arrow: return to where the game started ----------
+       The top-left arrow leads back to the place this round came
+       from: a Daily round (dealt from the calendar, carrying a
+       daily key) goes back to the calendar; a round started from
+       Main goes back to the main menu. The destination follows
+       the current round, so starting a random puzzle from the
+       end overlay's New puzzle mid-daily (no daily key) points
+       it at the menu again. In the app shell the targets are hash routes;
+       on the standalone pages they are the sibling files. */
+    function updateBackLink() {
+      let link = els.gameBack || document.getElementById("gameBackLink");
+      if (!link) return;
+      let isDaily = !!(game.dailyKey && game.dailyKey());
+      let inShell = !!document.getElementById("viewMain");
+      if (isDaily) {
+        link.setAttribute("href", inShell ? "#/calendar" : "calendar.html");
+        link.setAttribute("aria-label", translate("calBackToCalendar"));
+      } else {
+        link.setAttribute("href", inShell ? "#/" : "main.html");
+        link.setAttribute("aria-label", translate("calBackToMenu"));
+      }
+    }
+
     /* ---------- the one render entry point ---------- */
     function sync(effects) {
       effects = effects || {};
@@ -383,6 +399,7 @@
       else updateTiles();
       updateStatus();
       updateOverlays();
+      updateBackLink();
       applyEffects(effects);
     }
 
@@ -390,6 +407,13 @@
     function applyLanguage() {
       document.title = translate("title");
       document.documentElement.lang = translate("htmlLang");
+      setTextById("homeTitle", translate("title"));
+      setTextById("menuDailyLabel", translate("menuDaily"));
+      setTextById("menuDailyDesc", translate("menuDailyDesc"));
+      setTextById("menuMainLabel", translate("menuMain"));
+      setTextById("menuMainDesc", translate("menuMainDesc"));
+      let menuList = document.getElementById("menuList");
+      if (menuList) menuList.setAttribute("aria-label", translate("menuChoose"));
       setTextById("labelMistakes", translate("mistakes"));
       setTextById("labelTime", translate("time"));
       setTextById("labelHints", translate("hints"));
@@ -403,13 +427,13 @@
       setTextById("resumeBtn", translate("resume"));
       setTextById("retryBtn", translate("retry"));
       setTextById("againBtn", translate("again"));
-      setTextById("endSolutionLabel", translate("solutionLabel"));
-      if (els.endSolution) els.endSolution.setAttribute("aria-label", translate("solutionBoardLabel"));
       setTextById("resetConfirmTitle", translate("resetTitle"));
       setTextById("resetConfirmText", translate("resetText"));
       setTextById("resetYesBtn", translate("yes"));
       setTextById("resetNoBtn", translate("no"));
       setTextById("bankTitle", translate("bankTitle"));
+      setTextById("endSolutionLabel", translate("solutionLabel"));
+      if (els.endSolution) els.endSolution.setAttribute("aria-label", translate("solutionBoardLabel"));
       els.board.setAttribute("aria-label", translate("boardLabel"));
       els.bank.setAttribute("aria-label", translate("bankLabel"));
       setButtonLabel(els.reset, translate("resetLabel"));
@@ -423,9 +447,13 @@
       });
       updateSoundButton();
       syncFullscreenButton();
+      /* the calendar view follows the language too: its month
+         title, weekday header and day labels are re-rendered in
+         the new language (the month on show is kept) */
+      if (global.MC && global.MC.refreshCalendar) global.MC.refreshCalendar();
       boardSignature = null; /* aria labels live on cells/tiles: force one full build */
       bankSignature = null;
-      solutionSignature = null; /* the answer board renders again in the new language */
+      endSolutionSignature = null;
       sync({});
     }
 

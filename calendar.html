@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Math Crossword</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/game.css" />
+    <link rel="stylesheet" href="assets/css/home.css" />
+  </head>
+  <body>
+    
+    <!-- the Daily calendar page (one puzzle per date) -->
+<section id="viewCalendar" >
+      <main class="home-wrap">
+        <div class="view-bar">
+          <a class="back-link" href="main.html" aria-label="Back to menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </div>
+
+        <div class="cal-panel">
+          <div class="cal-header">
+            <button class="cal-nav-btn" id="calPrevBtn" type="button" aria-label="Previous month" title="Previous month">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+            </button>
+            <h2 class="cal-title num" id="calTitle">Month</h2>
+            <button class="cal-nav-btn cal-next-btn" id="calNextBtn" type="button" aria-label="Next month" title="Next month">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+            </button>
+          </div>
+
+          <div class="cal-weekdays" aria-hidden="true">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div class="cal-grid num" id="calGrid" role="grid" aria-label="Calendar month"></div>
+        </div>
+      </main>
+    </section>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/daily.js"></script>
+    <script src="assets/js/calendar.js"></script>
+  </body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Math Crossword</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/game.css" />
+    <link rel="stylesheet" href="assets/css/home.css" />
+  </head>
+  <body>
+    
+    <!-- main menu page (the Daily / Main landing page) -->
+<section id="viewMain">
+      <main class="home-wrap">
+        <!-- language and sound live on the landing page (moved
+             here from the game page's top bar at the user's
+             request); main.js wires them by id, exactly as before -->
+        <div class="home-tools">
+          <div class="lang-wrap">
+            <button class="btn lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="语言 / Language" title="语言 / Language">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#globe"></use></svg>
+              <span class="lang-code" id="langCode">EN</span>
+            </button>
+            <div class="lang-menu" id="langMenu" role="menu" aria-label="Language / 语言">
+              <button type="button" role="menuitemradio" data-lang="en" aria-checked="true"><span>English</span><span class="check" aria-hidden="true">✓</span></button>
+              <button type="button" role="menuitemradio" data-lang="zh" aria-checked="false"><span>中文</span><span class="check" aria-hidden="true">✓</span></button>
+            </div>
+          </div>
+          <button class="btn sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Turn off the placement sound" title="Turn off the placement sound">
+            <svg class="icon-sound-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sound-on"></use></svg>
+            <svg class="icon-sound-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sound-off"></use></svg>
+          </button>
+        </div>
+
+        <!-- the heading shows the game's name in the selected
+             language only — never both at once; main.js and
+             view.js keep #homeTitle in step with the language -->
+        <header class="home-head">
+          <h1 id="homeTitle">Math Crossword</h1>
+        </header>
+
+        <nav class="menu-list" id="menuList" aria-label="Choose a mode">
+          <a class="menu-card" href="calendar.html">
+            <span class="menu-icon daily">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#calendar"></use></svg>
+            </span>
+            <span class="menu-text">
+              <span class="menu-label" id="menuDailyLabel">Daily</span>
+              <span class="menu-desc" id="menuDailyDesc">One puzzle a day, on the calendar</span>
+            </span>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+
+          <a class="menu-card" href="game.html">
+            <span class="menu-icon main">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#grid"></use></svg>
+            </span>
+            <span class="menu-text">
+              <span class="menu-label" id="menuMainLabel">Main</span>
+              <span class="menu-desc" id="menuMainDesc">Play anytime, any difficulty</span>
+            </span>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </nav>
+      </main>
+    </section>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/audio.js"></script>
+    <!-- Landing wiring (the menu page's own script): the shared
+         main.js cannot load here — it wires game controls that do
+         not exist on this page. This mirrors its landing section:
+         language menu, sound switch, and the heading / card labels
+         in the stored language from the first paint. -->
+    <script>
+    (function (global) {
+      "use strict";
+      var MC = global.MC || (global.MC = {});
+      var i18n = MC.i18n;
+      var audio = MC.audio;
+      function element(id) { return document.getElementById(id); }
+      var langButton = element("langBtn");
+      var langMenu = element("langMenu");
+      var soundButton = element("soundBtn");
+      function syncLanding() {
+        document.title = i18n.translate("title");
+        document.documentElement.lang = i18n.translate("htmlLang");
+        var homeTitle = element("homeTitle");
+        if (homeTitle) homeTitle.textContent = i18n.translate("title");
+        var setText = function (id, key) {
+          var el = element(id);
+          if (el) el.textContent = i18n.translate(key);
+        };
+        setText("menuDailyLabel", "menuDaily");
+        setText("menuDailyDesc", "menuDailyDesc");
+        setText("menuMainLabel", "menuMain");
+        setText("menuMainDesc", "menuMainDesc");
+        var menuList = element("menuList");
+        if (menuList) menuList.setAttribute("aria-label", i18n.translate("menuChoose"));
+        var langCode = element("langCode");
+        if (langCode) langCode.textContent = i18n.translate("code");
+        document.querySelectorAll("#langMenu button").forEach(function (button) {
+          button.setAttribute("aria-checked", button.dataset.lang === i18n.language() ? "true" : "false");
+        });
+        if (soundButton) {
+          var enabled = audio.isEnabled();
+          soundButton.setAttribute("aria-pressed", enabled ? "true" : "false");
+          var label = i18n.translate(enabled ? "soundOffLabel" : "soundOnLabel");
+          soundButton.setAttribute("aria-label", label);
+          soundButton.title = label;
+        }
+      }
+      function closeLangMenu() {
+        langMenu.classList.remove("show");
+        langButton.setAttribute("aria-expanded", "false");
+      }
+      langButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var open = langMenu.classList.toggle("show");
+        langButton.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      document.querySelectorAll("#langMenu button").forEach(function (button) {
+        button.addEventListener("click", function () {
+          if (i18n.setLanguage(button.dataset.lang)) syncLanding();
+          closeLangMenu();
+        });
+      });
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".lang-wrap")) closeLangMenu();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeLangMenu();
+      });
+      soundButton.addEventListener("click", function () {
+        audio.toggle();
+        var enabled = audio.isEnabled();
+        soundButton.setAttribute("aria-pressed", enabled ? "true" : "false");
+        var label = i18n.translate(enabled ? "soundOffLabel" : "soundOnLabel");
+        soundButton.setAttribute("aria-label", label);
+        soundButton.title = label;
+      });
+      syncLanding();
+    })(window);
+    </script>
+  </body>
+</html>

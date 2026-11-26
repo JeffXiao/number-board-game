@@ -18,6 +18,8 @@
     let Solver = dependencies.solver;
     let audio = dependencies.audio;
     let translate = dependencies.translate;
+    let Daily = MC.Daily || null;
+    let onDailyWin = dependencies.onDailyWin || null;
 
     let state = null;       /* the one private state object */
     let confirmOpen = false;
@@ -52,9 +54,9 @@
     }
 
     /* ================= lifecycle ================= */
-    function freshState(difficulty, puzzle, board) {
+    function freshState(difficulty, puzzle, board, dailyKey) {
       return {
-        diff: difficulty, eqs: puzzle.eqs, cellMap: board.cellMap,
+        diff: difficulty, dailyKey: dailyKey || null, eqs: puzzle.eqs, cellMap: board.cellMap,
         rows: board.rows, cols: board.cols, maxDigits: board.maxDigits,
         blankKeys: board.blankKeys, tiles: board.tiles,
         selected: null, badKeys: {}, alertedSigs: {}, history: [],
@@ -62,11 +64,15 @@
         paused: false, over: false, timerId: null
       };
     }
-    function newGame(difficulty) {
-      let puzzle = Puzzle.generate(difficulty);
-      if (!puzzle) puzzle = Puzzle.generate(difficulty); // generation is randomized; a second pass virtually always succeeds
+    /* With a dailyKey the puzzle is the date's seeded one — the
+       same board every time that date is opened; without one it
+       is a fresh random puzzle and any daily round is left behind. */
+    function newGame(difficulty, dailyKey) {
+      let seed = dailyKey && Daily ? Daily.seedForKey(dailyKey) : null;
+      let puzzle = Puzzle.generate(difficulty, seed);
+      if (!puzzle) puzzle = Puzzle.generate(difficulty, seed); // generation is randomized; a second pass virtually always succeeds
       if (state) stopTimer();
-      state = freshState(difficulty, puzzle, Puzzle.buildBoard(puzzle));
+      state = freshState(difficulty, puzzle, Puzzle.buildBoard(puzzle), dailyKey);
       endKind = null;
       sorted = false;
       confirmOpen = false;
@@ -219,6 +225,9 @@
       state.over = true;
       endKind = "win";
       stopTimer();
+      /* a finished daily date is recorded at once, so its
+         calendar cell turns disabled (gray) from now on */
+      if (state.dailyKey && onDailyWin) onDailyWin(state.dailyKey);
       audio.playWin(); /* cheerful music for a full solve */
       return { confetti: true };
     }
@@ -530,6 +539,7 @@
       endKind: function () { return endKind; },
       roundId: function () { return roundId; },
       difficulty: function () { return state ? state.diff : null; },
+      dailyKey: function () { return state ? state.dailyKey : null; },
       seconds: function () { return state ? state.seconds : 0; },
       formatTime: formatTime,
       canUndo: function () { return !!(state && state.history.length && !state.paused); },

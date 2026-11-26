@@ -28,6 +28,8 @@
     endSolutionWrap: element("endSolutionWrap"),
     endSolution: element("endSolution"),
     retry: element("retryBtn"),
+    again: element("againBtn"),
+    gameBack: element("gameBackLink"),
     pause: element("pauseBtn"),
     sort: element("sortBtn"),
     undo: element("undoBtn"),
@@ -42,7 +44,8 @@
     puzzle: MC.Puzzle,
     solver: MC.Solver,
     audio: audio,
-    translate: i18n.translate
+    translate: i18n.translate,
+    onDailyWin: function (key) { if (MC.Daily) MC.Daily.markDone(key); }
   });
   const view = MC.createView({
     game: game,
@@ -53,7 +56,8 @@
   game.setListener(function (effects) { view.sync(effects); });
   view.attachInteractions();
 
-  /* ---------- top bar & bank controls ---------- */
+  /* ---------- controls: the game's top bar and bank, plus the
+     sound switch, which lives on the landing page ---------- */
   elements.sound.addEventListener("click", function () {
     audio.toggle(); /* toggling on plays a chip click as confirmation (in audio.js) */
     view.updateSoundButton();
@@ -66,7 +70,14 @@
   element("resumeBtn").addEventListener("click", function () { game.resume(); });
 
   /* ---------- end overlay ---------- */
-  element("againBtn").addEventListener("click", function () { game.newGame(game.difficulty()); });
+  element("againBtn").addEventListener("click", function () {
+    /* "New puzzle" always starts a practice round (no daily key),
+       at the round's difficulty — that becomes the remembered
+       practice difficulty too */
+    let difficulty = game.difficulty();
+    saveDifficultyChoice("practice", difficulty);
+    game.newGame(difficulty);
+  });
   elements.retry.addEventListener("click", function () { game.restartSame(); });
 
   /* ---------- reset confirmation ----------
@@ -79,14 +90,55 @@
   element("resetYesBtn").addEventListener("click", function () { game.confirmReset(); });
   element("resetNoBtn").addEventListener("click", function () { game.closeConfirm(); });
 
+  /* ---------- remembered difficulty ----------
+     The last difficulty chosen in each mode persists in
+     localStorage — the same storage the language choice and the
+     finished Daily dates already use — so the next visit opens
+     each mode where the player left it: Daily deals its puzzle
+     at the remembered Daily difficulty, and Main starts at the
+     remembered practice difficulty. A first visit (or a stored
+     value that is no longer a difficulty) falls back to the
+     configured defaults. */
+  function readDifficultyChoices() {
+    let choices = { daily: CONFIG.DAILY_DIFFICULTY, practice: CONFIG.DEFAULT_DIFFICULTY };
+    try {
+      let saved = JSON.parse(global.localStorage.getItem(CONFIG.DIFFICULTY_STORAGE_KEY) || "{}");
+      if (saved && MC.Puzzle.difficulties[saved.daily]) choices.daily = saved.daily;
+      if (saved && MC.Puzzle.difficulties[saved.practice]) choices.practice = saved.practice;
+    } catch (error) { /* storage unavailable: play at the defaults */ }
+    return choices;
+  }
+  let difficultyChoices = readDifficultyChoices();
+  function difficultyChoice(mode) { return difficultyChoices[mode]; }
+  function saveDifficultyChoice(mode, difficulty) {
+    if (!MC.Puzzle.difficulties[difficulty]) return;
+    difficultyChoices[mode] = difficulty;
+    try {
+      global.localStorage.setItem(CONFIG.DIFFICULTY_STORAGE_KEY, JSON.stringify(difficultyChoices));
+    } catch (error) { /* storage unavailable: the choice lasts for this visit only */ }
+  }
+
   /* ---------- difficulty ---------- */
   document.querySelectorAll(".difficulties button").forEach(function (button) {
     button.addEventListener("click", function () {
       if (game.isConfirmOpen()) return;
+      let difficulty = button.dataset.diff;
       document.querySelectorAll(".difficulties button").forEach(function (other) {
         other.setAttribute("aria-pressed", other === button ? "true" : "false");
       });
-      game.newGame(button.dataset.diff);
+      /* the tap is a choice for the mode of the round on screen:
+         in a Daily round it re-deals that date's puzzle at the
+         new difficulty and is remembered as the Daily difficulty;
+         in Main it starts a fresh practice puzzle and is
+         remembered as the practice difficulty */
+      let dailyKey = game.dailyKey();
+      if (dailyKey) {
+        saveDifficultyChoice("daily", difficulty);
+        game.newGame(difficulty, dailyKey);
+      } else {
+        saveDifficultyChoice("practice", difficulty);
+        game.newGame(difficulty);
+      }
     });
   });
 
@@ -116,8 +168,121 @@
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") closeLangMenu();
   });
+  /* the language button sits on the landing page now, on screen
+     before the game ever boots (bootGame's applyLanguage only runs
+     when the game view first opens): reflect the stored choice on
+     the button and the menu right away. Switching later still goes
+     through view.applyLanguage, which re-syncs both. */
+  element("langCode").textContent = i18n.translate("code");
+  /* the landing-page heading likewise shows the game's name in
+     the stored language right away, not both languages */
+  let homeTitleEl = element("homeTitle");
+  if (homeTitleEl) homeTitleEl.textContent = i18n.translate("title");
+  /* the menu cards follow the stored language too, from the
+     first paint — no mixed languages on the landing page */
+  let menuDailyLabelEl = element("menuDailyLabel");
+  if (menuDailyLabelEl) menuDailyLabelEl.textContent = i18n.translate("menuDaily");
+  let menuDailyDescEl = element("menuDailyDesc");
+  if (menuDailyDescEl) menuDailyDescEl.textContent = i18n.translate("menuDailyDesc");
+  let menuMainLabelEl = element("menuMainLabel");
+  if (menuMainLabelEl) menuMainLabelEl.textContent = i18n.translate("menuMain");
+  let menuMainDescEl = element("menuMainDesc");
+  if (menuMainDescEl) menuMainDescEl.textContent = i18n.translate("menuMainDesc");
+  let menuListEl = element("menuList");
+  if (menuListEl) menuListEl.setAttribute("aria-label", i18n.translate("menuChoose"));
+  document.querySelectorAll("#langMenu button").forEach(function (button) {
+    button.setAttribute("aria-checked", button.dataset.lang === i18n.language() ? "true" : "false");
+  });
 
-  /* ---------- start ---------- */
-  game.newGame(CONFIG.DEFAULT_DIFFICULTY);
-  view.applyLanguage();
+  /* ---------- daily puzzles & Main practice ----------
+     The calendar hands a date key to MC.playDaily; the key waits
+     here until the game view is on screen (nav.js calls
+     MC.enterGameView when it opens), then deals that date's
+     seeded puzzle at the daily difficulty. A date that is already
+     finished, or still in the future, is never dealt.
+     The menu's Main card likewise hands over a practice request
+     (MC.playPractice): entering through Main ALWAYS deals a
+     fresh random puzzle at the remembered practice difficulty,
+     whatever round was on the board before — a finished Daily,
+     an abandoned Daily, or an earlier practice round. */
+  let pendingDailyKey = null;
+  let pendingPractice = false;
+  function markDifficultyPressed(difficulty) {
+    document.querySelectorAll(".difficulties button").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.dataset.diff === difficulty ? "true" : "false");
+    });
+  }
+  function startPendingDaily() {
+    if (!pendingDailyKey) return;
+    let key = pendingDailyKey;
+    pendingDailyKey = null;
+    pendingPractice = false; /* the Daily tap is the latest intent */
+    /* the date's puzzle is dealt at the remembered Daily
+       difficulty (the configured daily default on a first visit) */
+    let difficulty = difficultyChoice("daily");
+    markDifficultyPressed(difficulty);
+    game.newGame(difficulty, key);
+  }
+  MC.playDaily = function (key) {
+    if (!MC.Daily || !MC.Daily.isPlayable(key)) return;
+    pendingDailyKey = key;
+    if (global.location.hash === "#/game") startPendingDaily();
+    else global.location.hash = "#/game";
+  };
+  MC.enterGameView = function () {
+    if (pendingDailyKey) { startPendingDaily(); return; }
+    if (!pendingPractice) return;
+    /* The player clicked Main: always start a brand-new practice
+       game, at the remembered practice difficulty — never reopen
+       whatever round was last on the board. */
+    pendingPractice = false;
+    let difficulty = difficultyChoice("practice");
+    markDifficultyPressed(difficulty);
+    game.newGame(difficulty);
+  };
+  MC.playPractice = function () {
+    pendingDailyKey = null; /* the Main tap is the latest intent */
+    pendingPractice = true;
+    if (global.location.hash === "#/game") MC.enterGameView();
+  };
+  /* the menu's Main card is the one practice entry point: wire
+     its tap to MC.playPractice (its "#/game" href then opens the
+     game view, and nav.js hands over to MC.enterGameView) */
+  let mainCard = document.querySelector('.menu-card[href="#/game"]');
+  if (mainCard) mainCard.addEventListener("click", function () { MC.playPractice(); });
+
+  /* ---------- start ----------
+     In the app shell (index.html) the game sits behind the main
+     menu, so the first puzzle is dealt lazily: nav.js calls
+     MC.bootGame() the first time the game view opens, and the
+     timer only starts then. The standalone game.html has no menu
+     view, so it boots immediately, exactly as before. */
+  let booted = false;
+  MC.bootGame = function () {
+    if (booted) return;
+    booted = true;
+    if (pendingDailyKey) startPendingDaily();
+    else if (pendingPractice) {
+      /* a Main tap brought us here: MC.enterGameView, which
+         nav.js calls immediately after boot, deals the fresh
+         practice puzzle — dealing one here too would waste it */
+    }
+    else {
+      /* Main opens at the remembered practice difficulty (the
+         configured default on a first visit) */
+      let difficulty = difficultyChoice("practice");
+      markDifficultyPressed(difficulty);
+      game.newGame(difficulty);
+    }
+    view.applyLanguage();
+  };
+  if (!element("viewMain")) {
+    /* standalone game.html: a ?daily=YYYY-MM-DD link from the
+       standalone calendar page deals that date's puzzle instead
+       of a random one */
+    let dailyParam = null;
+    try { dailyParam = new URLSearchParams(global.location.search).get("daily"); } catch (error) { dailyParam = null; }
+    if (dailyParam && MC.Daily && MC.Daily.isPlayable(dailyParam)) pendingDailyKey = dailyParam;
+    MC.bootGame();
+  }
 })(window);

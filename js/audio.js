@@ -1,6 +1,6 @@
 /* 数学十字谜 — audio module.
    Synthesized live with Web Audio — no files. There is no background
-   music: the speaker button in the top bar is the on/off switch for
+   music: the speaker button on the landing page is the on/off switch for
    these effects, owned here. Sound is on by default; when off,
    placing a number makes no sound and the win jingle stays silent.
      1. playChipSound — the moment a number lands in a cell: two

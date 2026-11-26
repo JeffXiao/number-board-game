@@ -150,8 +150,18 @@
     return best ? blanksFromGivens(allKeys, best) : null;
   }
 
-  function generate(difficulty) {
+  /* With a seed, generation runs on the seeded random source, so
+     the same seed (a Daily date) always produces the same puzzle;
+     without one it is the usual fresh random puzzle. */
+  function generate(difficulty, seed) {
     let difficultyConfig = DIFFICULTIES[difficulty];
+    if (!difficultyConfig) return null;
+    if (seed == null) return generateRandom(difficulty, difficultyConfig);
+    return util.withRandomSource(util.seededRandom(seed), function () {
+      return generateRandom(difficulty, difficultyConfig);
+    });
+  }
+  function generateRandom(difficulty, difficultyConfig) {
     for (let attempt = 0; attempt < CONFIG.GENERATION_ATTEMPTS; attempt++) {
       let built = buildEquations(difficulty, difficultyConfig);
       if (!built) continue;

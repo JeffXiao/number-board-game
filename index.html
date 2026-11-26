@@ -9,17 +9,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="css/game.css" />
+    <link rel="stylesheet" href="assets/css/game.css" />
+    <link rel="stylesheet" href="assets/css/home.css" />
   </head>
   <body>
-    <main class="wrap">
-      <div class="statusbar">
-        <div class="stats" aria-live="polite">
-          <span><span class="label" id="labelMistakes">Mistakes</span><span class="val num" id="mistakes">0/3</span></span>
-          <span><span class="label" id="labelTime">Time</span><span class="val num" id="timer">00:00</span></span>
-          <span><span class="label" id="labelHints">Hints</span><span class="val num" id="hints">0</span></span>
-        </div>
-        <div class="actions">
+    <!-- App shell: three views in one page, mirroring the standalone
+         files main.html (menu), game.html (the game) and
+         calendar.html (the month calendar). nav.js switches views by
+         hash route: #/ menu, #/game game, #/calendar calendar. -->
+
+    <!-- ============ main menu (main.html) ============ -->
+    <section id="viewMain">
+      <main class="home-wrap">
+        <!-- language and sound live on the landing page (moved
+             here from the game page's top bar at the user's
+             request); main.js wires them by id, exactly as before -->
+        <div class="home-tools">
           <div class="lang-wrap">
             <button class="btn lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="语言 / Language" title="语言 / Language">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#globe"></use></svg>
@@ -30,47 +35,97 @@
               <button type="button" role="menuitemradio" data-lang="zh" aria-checked="false"><span>中文</span><span class="check" aria-hidden="true">✓</span></button>
             </div>
           </div>
-          <button class="btn reset-btn" id="resetBtn" type="button" aria-label="Reset this round — asks for confirmation first" title="Reset this round — asks for confirmation first">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#reset"></use></svg>
-          </button>
           <button class="btn sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Turn off the placement sound" title="Turn off the placement sound">
             <svg class="icon-sound-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sound-on"></use></svg>
             <svg class="icon-sound-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sound-off"></use></svg>
           </button>
-          <button class="btn pause-btn" id="pauseBtn" type="button" aria-pressed="false" aria-label="Pause" title="Pause">
-            <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#pause"></use></svg>
-            <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#play"></use></svg>
-          </button>
-          <button class="btn hint-btn" id="hintBtn" type="button" aria-label="Hint: fill in one correct number" title="Hint">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#hint"></use></svg>
-          </button>
         </div>
-      </div>
 
-      <div class="difficulties" id="diffGroup" role="group" aria-label="Difficulty">
-        <button type="button" data-diff="easy" aria-pressed="false">Easy</button>
-        <button type="button" data-diff="medium" aria-pressed="true">Medium</button>
-        <button type="button" data-diff="hard" aria-pressed="false">Hard</button>
-        <button type="button" data-diff="expert" aria-pressed="false">Expert</button>
-      </div>
+        <!-- the heading shows the game's name in the selected
+             language only — never both at once; main.js and
+             view.js keep #homeTitle in step with the language -->
+        <header class="home-head">
+          <h1 id="homeTitle">Math Crossword</h1>
+        </header>
 
-      <div class="board-shell" id="boardShell">
-        <div class="board num" id="board" aria-label="Math crossword board"></div>
-        <div class="toast" id="toast" role="alert"></div>
+        <nav class="menu-list" id="menuList" aria-label="Choose a mode">
+          <a class="menu-card" href="#/calendar">
+            <span class="menu-icon daily">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#calendar"></use></svg>
+            </span>
+            <span class="menu-text">
+              <span class="menu-label" id="menuDailyLabel">Daily</span>
+              <span class="menu-desc" id="menuDailyDesc">One puzzle a day, on the calendar</span>
+            </span>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
 
-        <div class="overlay" id="pauseOverlay">
-          <h2 id="pauseTitle">Paused</h2>
-          <p id="pauseText">Take a break — continue when you’re ready.</p>
-          <div class="row">
-            <button class="btn primary" id="resumeBtn" type="button">Resume</button>
+          <a class="menu-card" href="#/game">
+            <span class="menu-icon main">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#grid"></use></svg>
+            </span>
+            <span class="menu-text">
+              <span class="menu-label" id="menuMainLabel">Main</span>
+              <span class="menu-desc" id="menuMainDesc">Play anytime, any difficulty</span>
+            </span>
+            <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </nav>
+      </main>
+    </section>
+
+    <!-- ============ the game (game.html) ============ -->
+    <section id="viewGame" class="hidden">
+      <main class="wrap">
+        <div class="view-bar">
+          <a class="back-link" id="gameBackLink" href="#/" aria-label="Back to menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </div>
+
+        <div class="statusbar">
+          <div class="stats" aria-live="polite">
+            <span><span class="label" id="labelMistakes">Mistakes</span><span class="val num" id="mistakes">0/3</span></span>
+            <span><span class="label" id="labelTime">Time</span><span class="val num" id="timer">00:00</span></span>
+            <span><span class="label" id="labelHints">Hints</span><span class="val num" id="hints">0</span></span>
+          </div>
+          <div class="actions">
+            <button class="btn reset-btn" id="resetBtn" type="button" aria-label="Reset this round — asks for confirmation first" title="Reset this round — asks for confirmation first">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#reset"></use></svg>
+            </button>
+            <button class="btn pause-btn" id="pauseBtn" type="button" aria-pressed="false" aria-label="Pause" title="Pause">
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#pause"></use></svg>
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#play"></use></svg>
+            </button>
+            <button class="btn hint-btn" id="hintBtn" type="button" aria-label="Hint: fill in one correct number" title="Hint">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#hint"></use></svg>
+            </button>
           </div>
         </div>
 
-        <div class="overlay end-overlay" id="endOverlay">
-          <div class="end-inner">
+        <div class="difficulties" id="diffGroup" role="group" aria-label="Difficulty">
+          <button type="button" data-diff="easy" aria-pressed="false">Easy</button>
+          <button type="button" data-diff="medium" aria-pressed="true">Medium</button>
+          <button type="button" data-diff="hard" aria-pressed="false">Hard</button>
+          <button type="button" data-diff="expert" aria-pressed="false">Expert</button>
+        </div>
+
+        <div class="board-shell" id="boardShell">
+          <div class="board num" id="board" aria-label="Math crossword board"></div>
+          <div class="toast" id="toast" role="alert"></div>
+
+          <div class="overlay" id="pauseOverlay">
+            <h2 id="pauseTitle">Paused</h2>
+            <p id="pauseText">Take a break — continue when you’re ready.</p>
+            <div class="row">
+              <button class="btn primary" id="resumeBtn" type="button">Resume</button>
+            </div>
+          </div>
+
+          <div class="overlay end-overlay" id="endOverlay">
             <div class="end-solution-wrap hidden" id="endSolutionWrap">
-              <p class="end-solution-label" id="endSolutionLabel"></p>
-              <div class="end-solution num" id="endSolution"></div>
+              <div class="end-solution-label" id="endSolutionLabel">Your completed answer</div>
+              <div class="end-solution num" id="endSolution" aria-label="Completed answer"></div>
             </div>
             <h2 id="endTitle">Done!</h2>
             <p id="endText"></p>
@@ -79,55 +134,89 @@
               <button class="btn primary" id="againBtn" type="button">New puzzle</button>
             </div>
           </div>
-        </div>
 
-        <div class="overlay" id="resetConfirmOverlay" role="alertdialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
-          <h2 id="resetConfirmTitle">Reset this round?</h2>
-          <p id="resetConfirmText">Resetting clears the numbers you’ve placed, and mistakes and time start over.</p>
-          <div class="row">
-            <button class="btn" id="resetNoBtn" type="button">No</button>
-            <button class="btn primary" id="resetYesBtn" type="button">Yes</button>
+          <div class="overlay" id="resetConfirmOverlay" role="alertdialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
+            <h2 id="resetConfirmTitle">Reset this round?</h2>
+            <p id="resetConfirmText">Resetting clears the numbers you’ve placed, and mistakes and time start over.</p>
+            <div class="row">
+              <button class="btn" id="resetNoBtn" type="button">No</button>
+              <button class="btn primary" id="resetYesBtn" type="button">Yes</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="bank-head">
-        <span class="t" id="bankTitle">Number tiles</span>
-        <span class="bank-tools">
-          <span class="p" id="progress">Filled 0 / 0</span>
-          <button class="btn sort-btn" id="sortBtn" type="button" aria-pressed="false" aria-label="Sort tiles from smallest to largest" title="Sort tiles from smallest to largest">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sort"></use></svg>
-          </button>
-          <button class="btn sort-btn undo-btn" id="undoBtn" type="button" aria-label="Undo last move" title="Undo last move" disabled>
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#undo"></use></svg>
-          </button>
-          <button class="btn fullscreen-btn" id="fullscreenBtn" type="button" aria-pressed="false" aria-label="Full screen" title="Full screen">
-            <!-- fullscreen glyphs are inlined (paths copied verbatim from
-                 assets/icons/fullscreen.svg and fullscreen-exit.svg):
-                 the external sprite <use> for these two symbols failed
-                 to render on the live page, leaving an empty button,
-                 while the other icons resolved fine. -->
-            <svg class="icon-fullscreen" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-            <svg class="icon-fullscreen-exit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
-          </button>
-        </span>
-      </div>
-      <div class="bank num" id="bank" aria-label="Number tiles"></div>
-    </main>
+        <div class="bank-head">
+          <span class="t" id="bankTitle">Number tiles</span>
+          <span class="bank-tools">
+            <span class="p" id="progress">Filled 0 / 0</span>
+            <button class="btn sort-btn" id="sortBtn" type="button" aria-pressed="false" aria-label="Sort tiles from smallest to largest" title="Sort tiles from smallest to largest">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sort"></use></svg>
+            </button>
+            <button class="btn sort-btn undo-btn" id="undoBtn" type="button" aria-label="Undo last move" title="Undo last move" disabled>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#undo"></use></svg>
+            </button>
+            <button class="btn fullscreen-btn" id="fullscreenBtn" type="button" aria-pressed="false" aria-label="Full screen" title="Full screen">
+              <!-- fullscreen glyphs are inlined (paths copied verbatim from
+                   assets/icons/fullscreen.svg and fullscreen-exit.svg):
+                   the external sprite <use> for these two symbols failed
+                   to render on the live page, leaving an empty button,
+                   while the other icons resolved fine. -->
+              <svg class="icon-fullscreen" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              <svg class="icon-fullscreen-exit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+            </button>
+          </span>
+        </div>
+        <div class="bank num" id="bank" aria-label="Number tiles"></div>
+      </main>
+    </section>
+
+    <!-- ============ calendar (calendar.html) ============ -->
+    <section id="viewCalendar" class="hidden">
+      <main class="home-wrap">
+        <div class="view-bar">
+          <a class="back-link" href="#/" aria-label="Back to menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </div>
+
+        <div class="cal-panel">
+          <div class="cal-header">
+            <button class="cal-nav-btn" id="calPrevBtn" type="button" aria-label="Previous month" title="Previous month">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+            </button>
+            <h2 class="cal-title num" id="calTitle">Month</h2>
+            <button class="cal-nav-btn cal-next-btn" id="calNextBtn" type="button" aria-label="Next month" title="Next month">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+            </button>
+          </div>
+
+          <div class="cal-weekdays" aria-hidden="true">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div class="cal-grid num" id="calGrid" role="grid" aria-label="Calendar month"></div>
+        </div>
+      </main>
+    </section>
 
     <!-- Modules split by concern, loaded in dependency order as
          classic scripts (the artifact runtime serves them from
          assets/js/): config -> i18n -> ops -> puzzle -> solver ->
-         audio -> state -> drag -> view -> main. -->
-    <script src="js/config.js"></script>
-    <script src="js/i18n.js"></script>
-    <script src="js/ops.js"></script>
-    <script src="js/puzzle.js"></script>
-    <script src="js/solver.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/drag.js"></script>
-    <script src="js/view.js"></script>
-    <script src="js/main.js"></script>
+         daily -> audio -> state -> drag -> view -> main ->
+         calendar -> nav. main.js wires the game but defers its
+         first puzzle while the menu view exists; nav.js boots it
+         when the game view opens. -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/ops.js"></script>
+    <script src="assets/js/puzzle.js"></script>
+    <script src="assets/js/solver.js"></script>
+    <script src="assets/js/daily.js"></script>
+    <script src="assets/js/audio.js"></script>
+    <script src="assets/js/state.js"></script>
+    <script src="assets/js/drag.js"></script>
+    <script src="assets/js/view.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/calendar.js"></script>
+    <script src="assets/js/nav.js"></script>
   </body>
 </html>

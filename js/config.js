@@ -13,6 +13,17 @@
     LANG_STORAGE_KEY: "math-crossword-lang",
     DEFAULT_LANG: "en",
 
+    /* daily puzzles: one seeded puzzle per calendar date; the
+       finished dates persist alongside the language choice */
+    DAILY_STORAGE_KEY: "math-crossword-daily-done",
+    DAILY_DIFFICULTY: "medium",
+
+    /* the last difficulty chosen in each mode — Daily and Main
+       practice — persists in localStorage under this key (a JSON
+       object { daily, practice }); DEFAULT_DIFFICULTY and
+       DAILY_DIFFICULTY above are the first-visit fallbacks */
+    DIFFICULTY_STORAGE_KEY: "math-crossword-difficulty",
+
     /* timing / feedback */
     TIMER_INTERVAL_MS: 1000,
     TOAST_MS: 1700,

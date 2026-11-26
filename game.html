@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Math Crossword</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/game.css" />
+    <link rel="stylesheet" href="assets/css/home.css" />
+  </head>
+  <body>
+    
+    <!-- the game page (Main practice, or one Daily puzzle via ?daily=YYYY-MM-DD) -->
+<section id="viewGame" >
+      <main class="wrap">
+        <div class="view-bar">
+          <a class="back-link" id="gameBackLink" href="main.html" aria-label="Back to menu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
+          </a>
+        </div>
+
+        <div class="statusbar">
+          <div class="stats" aria-live="polite">
+            <span><span class="label" id="labelMistakes">Mistakes</span><span class="val num" id="mistakes">0/3</span></span>
+            <span><span class="label" id="labelTime">Time</span><span class="val num" id="timer">00:00</span></span>
+            <span><span class="label" id="labelHints">Hints</span><span class="val num" id="hints">0</span></span>
+          </div>
+          <div class="actions">
+            <button class="btn reset-btn" id="resetBtn" type="button" aria-label="Reset this round — asks for confirmation first" title="Reset this round — asks for confirmation first">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#reset"></use></svg>
+            </button>
+            <button class="btn pause-btn" id="pauseBtn" type="button" aria-pressed="false" aria-label="Pause" title="Pause">
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#pause"></use></svg>
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#play"></use></svg>
+            </button>
+            <button class="btn hint-btn" id="hintBtn" type="button" aria-label="Hint: fill in one correct number" title="Hint">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#hint"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="difficulties" id="diffGroup" role="group" aria-label="Difficulty">
+          <button type="button" data-diff="easy" aria-pressed="false">Easy</button>
+          <button type="button" data-diff="medium" aria-pressed="true">Medium</button>
+          <button type="button" data-diff="hard" aria-pressed="false">Hard</button>
+          <button type="button" data-diff="expert" aria-pressed="false">Expert</button>
+        </div>
+
+        <div class="board-shell" id="boardShell">
+          <div class="board num" id="board" aria-label="Math crossword board"></div>
+          <div class="toast" id="toast" role="alert"></div>
+
+          <div class="overlay" id="pauseOverlay">
+            <h2 id="pauseTitle">Paused</h2>
+            <p id="pauseText">Take a break — continue when you’re ready.</p>
+            <div class="row">
+              <button class="btn primary" id="resumeBtn" type="button">Resume</button>
+            </div>
+          </div>
+
+          <div class="overlay end-overlay" id="endOverlay">
+            <div class="end-solution-wrap hidden" id="endSolutionWrap">
+              <div class="end-solution-label" id="endSolutionLabel">Your completed answer</div>
+              <div class="end-solution num" id="endSolution" aria-label="Completed answer"></div>
+            </div>
+            <h2 id="endTitle">Done!</h2>
+            <p id="endText"></p>
+            <div class="row">
+              <button class="btn" id="retryBtn" type="button">Try again</button>
+              <button class="btn primary" id="againBtn" type="button">New puzzle</button>
+            </div>
+          </div>
+
+          <div class="overlay" id="resetConfirmOverlay" role="alertdialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmText">
+            <h2 id="resetConfirmTitle">Reset this round?</h2>
+            <p id="resetConfirmText">Resetting clears the numbers you’ve placed, and mistakes and time start over.</p>
+            <div class="row">
+              <button class="btn" id="resetNoBtn" type="button">No</button>
+              <button class="btn primary" id="resetYesBtn" type="button">Yes</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bank-head">
+          <span class="t" id="bankTitle">Number tiles</span>
+          <span class="bank-tools">
+            <span class="p" id="progress">Filled 0 / 0</span>
+            <button class="btn sort-btn" id="sortBtn" type="button" aria-pressed="false" aria-label="Sort tiles from smallest to largest" title="Sort tiles from smallest to largest">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#sort"></use></svg>
+            </button>
+            <button class="btn sort-btn undo-btn" id="undoBtn" type="button" aria-label="Undo last move" title="Undo last move" disabled>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#undo"></use></svg>
+            </button>
+            <button class="btn fullscreen-btn" id="fullscreenBtn" type="button" aria-pressed="false" aria-label="Full screen" title="Full screen">
+              <!-- fullscreen glyphs are inlined (paths copied verbatim from
+                   assets/icons/fullscreen.svg and fullscreen-exit.svg):
+                   the external sprite <use> for these two symbols failed
+                   to render on the live page, leaving an empty button,
+                   while the other icons resolved fine. -->
+              <svg class="icon-fullscreen" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              <svg class="icon-fullscreen-exit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+            </button>
+          </span>
+        </div>
+        <div class="bank num" id="bank" aria-label="Number tiles"></div>
+      </main>
+    </section>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/ops.js"></script>
+    <script src="assets/js/puzzle.js"></script>
+    <script src="assets/js/solver.js"></script>
+    <script src="assets/js/daily.js"></script>
+    <script src="assets/js/audio.js"></script>
+    <script src="assets/js/state.js"></script>
+    <script src="assets/js/drag.js"></script>
+    <script src="assets/js/view.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/calendar.js"></script>
+  </body>
+</html>

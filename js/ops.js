@@ -10,15 +10,37 @@
   const MC = global.MC || (global.MC = {});
   const CONFIG = MC.CONFIG;
 
+  /* ---------- random source ----------
+     Generation draws through one swappable source: Math.random for
+     free play, a seeded generator for the Daily puzzle, so a given
+     date always deals the same board. withRandomSource swaps it for
+     the duration of one call and always restores the previous one. */
+  let randomSource = Math.random;
+  function seededRandom(seed) {
+    let state = seed >>> 0;
+    return function () {
+      state = (state + 0x6D2B79F5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function withRandomSource(source, fn) {
+    let previous = randomSource;
+    randomSource = source;
+    try { return fn(); } finally { randomSource = previous; }
+  }
+
   /* ---------- utilities (written once, reused everywhere) ---------- */
   function randomInt(min, max) {
     if (max < min) return null;
-    return min + Math.floor(Math.random() * (max - min + 1));
+    return min + Math.floor(randomSource() * (max - min + 1));
   }
   function shuffle(list) {
     let copy = list.slice();
     for (let i = copy.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
+      let j = Math.floor(randomSource() * (i + 1));
       let swap = copy[i]; copy[i] = copy[j]; copy[j] = swap;
     }
     return copy;
@@ -35,7 +57,7 @@
       return q >= CONFIG.FACTOR_MIN && q <= CONFIG.FACTOR_MAX;
     });
     if (!divisors.length) return null;
-    let d = divisors[Math.floor(Math.random() * divisors.length)];
+    let d = divisors[Math.floor(randomSource() * divisors.length)];
     return { a: d, b: n / d };
   }
   function cellKey(row, col) { return row + "," + col; }
@@ -45,7 +67,9 @@
     shuffle: shuffle,
     divisorsIn: divisorsIn,
     factorPairOf: factorPairOf,
-    cellKey: cellKey
+    cellKey: cellKey,
+    seededRandom: seededRandom,
+    withRandomSource: withRandomSource
   });
 
   /* ---------- the operation table ----------

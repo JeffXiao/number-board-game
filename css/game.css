@@ -362,42 +362,51 @@ body.is-expanded .wrap {
 .overlay h2 { margin: 0; font-size: 26px; font-weight: 400; }
 .overlay p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
 .overlay .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
-/* ---------- end overlay with the completed-answer board ----------
-   The win overlay can hold the full answer board (expert is 11
-   rows tall), so it scrolls from the top when the content is
-   taller than the shell. The single inner group carries auto
-   margins, which centre it when it fits and collapse to nothing
-   when it overflows, so the lose page stays centred too. */
-.end-overlay { justify-content: flex-start; overflow-y: auto; }
-.end-overlay .end-inner {
-  width: 100%;
-  margin: auto;
+/* ---------- end overlay: completed answer on top ----------
+   The finished board sits at the top of the final page; the
+   "All correct!" heading and the time / mistakes line move down
+   below it to make room. The column starts at the top and scrolls
+   if a large (Expert) answer ever outgrows the board panel, while
+   the auto margins keep the whole group centred when it fits. */
+.end-overlay {
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding: 18px 16px 20px;
+  gap: 8px;
+}
+.end-overlay .end-solution-wrap { margin-top: auto; }
+.end-overlay .row { margin-bottom: auto; }
+.end-overlay:not(:has(.end-solution-wrap:not(.hidden))) h2 { margin-top: auto; }
+.end-solution-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
 }
-.end-solution-wrap { width: 100%; }
+.end-solution-label { font-size: 14px; color: var(--ink-soft); }
 .end-solution {
   display: grid;
-  gap: 3px;
-  width: 100%;
+  gap: 2px;
+  /* recap sizing: each cell is 32px — about half the main board's
+     58px cells — so the board's width is derived from its column
+     count (32px per cell plus the 2px gaps between them), never
+     from the panel width; max-width only shrinks it further on
+     very narrow screens. At this size the whole win page — recap
+     board, heading, stats and buttons — fits the panel without
+     scrolling. */
+  width: calc(var(--cols, 9) * 32px + (var(--cols, 9) - 1) * 2px);
+  max-width: 100%;
   grid-template-columns: repeat(var(--cols, 9), 1fr);
-  /* deliberately small: a recap of the finished board, not a second
-     full-size board — 32px cells (main board uses 58px) so the whole
-     win page (board + title + stats + button) fits without scrolling */
-  max-width: calc(var(--cols, 9) * 32px);
-  margin: 0 auto;
-  font-size: var(--solution-font, 20px);
+  font-size: var(--solution-font, 14.5px);
 }
-/* numbers the player placed show in the green filled style;
-   givens and operators reuse the board's own classes */
+.end-solution .cell { border-radius: 4px; }
 .end-solution .cell.solution-filled {
   background: var(--filled-bg);
   border: 1.5px solid var(--filled-line);
   color: var(--filled-ink);
-  font-size: 1.22em;
 }
+.end-solution .cell.op, .end-solution .cell.eq { font-size: 1.25em; }
 .confetti-bit {
   position: absolute;
   top: -12px;
