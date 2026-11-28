@@ -7,7 +7,7 @@
 
   MC.CONFIG = Object.freeze({
     /* play */
-    MAX_MISTAKES: 3,
+    MAX_MISTAKES: 5,
     HISTORY_LIMIT: 100,
     DEFAULT_DIFFICULTY: "medium",
     LANG_STORAGE_KEY: "math-crossword-lang",
@@ -17,6 +17,9 @@
        finished dates persist alongside the language choice */
     DAILY_STORAGE_KEY: "math-crossword-daily-done",
     DAILY_DIFFICULTY: "medium",
+    /* how far back Continue looks for the previous date that
+       has not been practiced yet (one full year of days) */
+    DAILY_LOOKBACK_DAYS: 366,
 
     /* the last difficulty chosen in each mode — Daily and Main
        practice — persists in localStorage under this key (a JSON

@@ -53,6 +53,54 @@
   function isPlayable(key) {
     return !!dateForKey(key) && !isFutureKey(key) && !isDone(key);
   }
+  /* The most recent date before fromKey that has not been
+     practiced yet — the nearest earlier day that is not
+     finished. (Being earlier than fromKey, which in use is a
+     completed date and so never in the future, the result is
+     never a future date either.) After a Daily round is
+     completed, Continue points the calendar at this date so
+     the player can tap it next and keep working backwards
+     through the days they missed. The walk is bounded by
+     CONFIG.DAILY_LOOKBACK_DAYS; when every day in that span is
+     finished there is nothing to point at and it returns null,
+     as it does for a key that is not a real date. The
+     predicate-taking form is the pure core, so unit tests can
+     pin the walk against a fixed finished set;
+     previousUnfinishedKey judges against the real one. */
+  function previousUnfinishedBefore(fromKey, isDoneFn) {
+    let from = dateForKey(fromKey);
+    if (!from) return null;
+    let cursor = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    for (let i = 0; i < CONFIG.DAILY_LOOKBACK_DAYS; i++) {
+      cursor.setDate(cursor.getDate() - 1);
+      let key = keyForDate(cursor);
+      if (!isDoneFn(key)) return key;
+    }
+    return null;
+  }
+  function previousUnfinishedKey(fromKey) {
+    return previousUnfinishedBefore(fromKey, isDone);
+  }
+  /* The one date the calendar points at as the next to play:
+     today itself, while today has not been finished yet — the
+     player plays today's puzzle first — and only once today is
+     finished, the nearest earlier unfinished day. So there is
+     always exactly one date to point at, never two: the
+     calendar never highlights today and another day at once
+     (the player's report: two highlighted dates on the
+     November 2026 calendar — the 28th framed as today and the
+     26th ringed as the previous unpracticed day). The
+     predicate-taking form is the pure core, so unit tests can
+     pin the choice against a fixed finished set;
+     nextDateToPlay judges against the real one. */
+  function nextDateToPlayFrom(isDoneFn) {
+    let todayK = todayKey();
+    if (!isDoneFn(todayK)) return todayK;
+    return previousUnfinishedBefore(todayK, isDoneFn);
+  }
+  function nextDateToPlay() {
+    return nextDateToPlayFrom(isDone);
+  }
 
   MC.Daily = Object.freeze({
     keyForDate: keyForDate,
@@ -62,6 +110,10 @@
     seedForKey: seedForKey,
     isDone: isDone,
     markDone: markDone,
-    isPlayable: isPlayable
+    isPlayable: isPlayable,
+    previousUnfinishedKey: previousUnfinishedKey,
+    previousUnfinishedBefore: previousUnfinishedBefore,
+    nextDateToPlay: nextDateToPlay,
+    nextDateToPlayFrom: nextDateToPlayFrom
   });
 })(window);

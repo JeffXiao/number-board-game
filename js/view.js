@@ -218,12 +218,18 @@
       }
       /* A finished daily round is done for the day: there is no
          next puzzle to offer, so the "New puzzle" button is hidden
-         on a daily win. Rounds started from Main (no daily key)
-         keep it, so the player can play on. A daily loss is not
-         finished — Try again stays, as before. */
+         on a daily win and a "Continue" button takes its place —
+         the way onward from a completed day, back to the calendar
+         (main.js wires its tap; updateBackLink hides the top-left
+         back arrow in this same state, since Continue replaces
+         it). Rounds started from Main (no daily key) keep New
+         puzzle, so the player can play on. A daily loss is not
+         finished — Try again stays, as before, and no Continue. */
       let againBtn = els.again || document.getElementById("againBtn");
-      let isDailyWin = game.endKind() === "win" && !!(game.dailyKey && game.dailyKey());
+      let continueBtn = els.continueBtn || document.getElementById("continueBtn");
+      let isDailyWin = game.isDailyWin();
       if (againBtn) againBtn.classList.toggle("hidden", isDailyWin);
+      if (continueBtn) continueBtn.classList.toggle("hidden", !isDailyWin);
       if (game.endKind() === "win") {
         buildEndSolution();
         if (els.endSolutionWrap) els.endSolutionWrap.classList.remove("hidden");
@@ -376,6 +382,11 @@
     function updateBackLink() {
       let link = els.gameBack || document.getElementById("gameBackLink");
       if (!link) return;
+      /* once a Daily round is completed the arrow goes away: the
+         end overlay's Continue button is the way onward from a
+         finished day (back to the calendar). It returns as soon
+         as any other round is on screen. */
+      link.classList.toggle("hidden", game.isDailyWin());
       let isDaily = !!(game.dailyKey && game.dailyKey());
       let inShell = !!document.getElementById("viewMain");
       if (isDaily) {
@@ -414,6 +425,9 @@
       setTextById("menuMainDesc", translate("menuMainDesc"));
       let menuList = document.getElementById("menuList");
       if (menuList) menuList.setAttribute("aria-label", translate("menuChoose"));
+      setTextById("testsLink", translate("testsLink"));
+      setTextById("testsTitle", translate("testsTitle"));
+      setTextById("testsRunBtn", translate("testsRun"));
       setTextById("labelMistakes", translate("mistakes"));
       setTextById("labelTime", translate("time"));
       setTextById("labelHints", translate("hints"));
@@ -427,6 +441,7 @@
       setTextById("resumeBtn", translate("resume"));
       setTextById("retryBtn", translate("retry"));
       setTextById("againBtn", translate("again"));
+      setTextById("continueBtn", translate("continueBtn"));
       setTextById("resetConfirmTitle", translate("resetTitle"));
       setTextById("resetConfirmText", translate("resetText"));
       setTextById("resetYesBtn", translate("yes"));

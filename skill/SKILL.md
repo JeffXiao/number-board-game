@@ -26,13 +26,13 @@
 
 - Flag an equation as wrong only after it is filled and its numbers do not match, and never judge a placement the moment it lands.
 
-- Count one mistake per mismatched equation and end the round after 3 mistakes.
+- Count one mistake per mismatched equation. Mistakes are cumulative within a round: undoing or taking a wrong number back never erases them (Nov 28, 2026, at the user's request — a 1/3 mistake must stay 1/3 after going back a step). After 5 mistakes the round ends, and Try again restarts the same puzzle arrangement (limit raised from 3 to 5 on Nov 28, 2026, at the user's request).
 
 - Let the player tap a filled cell to take its number back, drag a tile onto a filled cell to replace it, drag a filled number back to the bank to take it back, and drag a filled number to another blank cell to move it or swap the two numbers.
 
 - Record every placement, take back, move, swap and hint as one undo step, and let the undo button step back one action at a time.
 
-- Restore the tile use, mistake count, hint count and red marks when undoing, and clear the history on a new puzzle, a reset or a difficulty change.
+- Restore the tile use, hint count and red marks when undoing, but never the mistake count — mistakes stay counted (Nov 28, 2026, at the user's request). Clear the history on a new puzzle, a reset or a difficulty change.
 
 - Disable the undo button when no step is left to undo.
 
@@ -50,7 +50,7 @@
 
 - Remove the new puzzle button from the top bar and keep it only in the completion popup and the 3 mistake popup.
 
-- Use no bold type anywhere and load the Baloo 2 font in weights 400 and 500 only.
+- Use no bold type anywhere, except on the Daily calendar, where today and all past dates are bold and future dates are not (Nov 28, 2026, at the user's request). Load the Baloo 2 font in weights 400 and 500 only.
 
 - Size numbers placed in cells to match the number tiles, and size the operator and equals symbols near 1.4 times the cell text.
 
@@ -66,6 +66,22 @@
 
 - Play no sound at all when the sound switch is off, and keep no background music in the game.
 
+## Daily
+
+- Show a calendar of the current month; tapping a date opens that date's Daily puzzle, fixed per date (date-seeded, the same date always deals the same board). Winning a day's puzzle marks that date finished, shown gray and disabled; losing does not, so it can be retried; future dates are gray and disabled.
+
+- After a Daily win the settlement shows a 'Continue' button instead of 'New puzzle', and the top-left back arrow is hidden in that completed state (Nov 28, 2026, at the user's request). Tapping Continue returns to the calendar on the nearest earlier unfinished date, highlighted and ready to tap (looking back up to a year, across month and year boundaries); if none is left unfinished, the calendar opens on the current month. Tapping Daily opens the calendar the same way, highlighting exactly one date: today while it is unfinished, otherwise the nearest earlier unfinished date (Nov 28, 2026, at the user's request — two dates must never be highlighted at once).
+
+## Register a player name
+
+- Show a Register button at the bottom of the landing page; tapping it opens a popup to enter a player name, saved only on this device in local storage (Nov 26, 2026, at the user's request — no host saving, no IP or device info recorded).
+
+- Allow no duplicate names: check case-insensitively with spaces trimmed, and show the error inside the popup without saving anything.
+
+- List the registered names under the button, and hide the Register button once a name is registered on the device (Nov 26, 2026, at the user's request — the game recognizes the registered user).
+
+- Gate Daily and Practice behind registration (Nov 28, 2026, at the user's request): if no name is registered, tapping Daily or Practice opens the Register popup first — no name, no play. Saving a name in that popup carries the player straight into the mode they tapped; cancelling leaves them on the menu, still gated. Once a name is registered, the gate never interferes.
+
 ## Build and maintain the game
 
 - Keep the game as a static web artifact named 数学十字谜 with slug `shu-xue-shi-zi-mi`.
@@ -75,6 +91,8 @@
 - Keep `index.html` for structure only, with styles in an external stylesheet, and keep JavaScript as ES modules split by concern — follow the `web-development` skill for all code structure. The old "one classic script, no modules" rule is superseded (Nov 19, 2026, at the user's request — a code review found the single 60KB classic script looked like a high-school project). The artifact serves modules from `assets/js/`; the GitHub layout mirrors them under `js/`, and `index.html` points at the module entry.
 
 - Keep functions small and single-purpose per the `web-development` skill; when one grows, split it by extracting a helper and calling it — never change game behavior, wording, sounds or layout while splitting. (The old "15 lines or fewer" rule is superseded — it was aspirational, never enforced, and the file still grew to ~1,500 lines.)
+
+- Add unit tests whenever a new change is made (Nov 28, 2026, at the user's request): cover the new behavior with tests in the game's test suite (the Unit tests view, #/tests), and keep the whole suite green — a change is not done while any test fails. Do not put a Unit tests link on the landing page (Nov 28, 2026, at the user's request) — the suite runs via the #/tests route, not from a visible link.
 
 - Change the game only through `artifact.edit` on that slug, passing the user request as `verbatim_request`.
 

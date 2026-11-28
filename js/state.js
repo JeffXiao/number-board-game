@@ -119,7 +119,11 @@
        with the same numbers alerts only once (state.alertedSigs);
        fixing it and breaking it again alerts again. A wrong number is
        NOT taken back automatically: it stays in its cell and the
-       player fixes it. */
+       player fixes it. Once counted, a mistake is never un-counted:
+       taking the number back, or undoing the move that caused it,
+       keeps the count — it resets only when a round starts (a new
+       puzzle, a restart of the same arrangement, or a difficulty
+       change). */
     function cellValue(k) {
       let cell = state.cellMap[k];
       if (!cell || cell.type !== "num") return null;
@@ -238,7 +242,14 @@
        number back, moving / swapping a filled number, and using a
        hint — first pushes a serialisable snapshot onto the history.
        Undo pops exactly one snapshot per tap. Sorting the tiles is
-       not a move and is not undone. */
+       not a move and is not undone.
+       The mistake count is NOT part of a snapshot: mistakes are
+       cumulative for the whole round, so going back a step (undo,
+       or taking a number back) never lowers the count — a mistake
+       stays counted until the round ends. At MAX_MISTAKES the
+       round is lost and cannot be undone back into play; it
+       restarts with the same arrangement (restartSame) or a new
+       puzzle starts. */
     function makeSnapshot() {
       let cells = {};
       state.blankKeys.forEach(function (k) {
@@ -249,7 +260,8 @@
       return {
         cells: cells,
         selected: state.selected,
-        mistakes: state.mistakes,
+        /* no mistakes here on purpose: undo never rewinds the
+           round's mistake count (see the undo note above) */
         hints: state.hints,
         badKeys: Object.assign({}, state.badKeys || {}),
         alertedSigs: Object.assign({}, state.alertedSigs || {}),
@@ -288,13 +300,19 @@
         }
       });
       state.selected = snapshot.selected;
-      state.mistakes = snapshot.mistakes;
+      /* state.mistakes is deliberately left untouched: the count
+         accumulated so far this round is kept, even when the move
+         being undone is the one that caused a mistake */
       state.hints = snapshot.hints;
       state.badKeys = Object.assign({}, snapshot.badKeys || {});
       state.alertedSigs = Object.assign({}, snapshot.alertedSigs || {});
     }
     function undoLast() {
       if (!state || state.paused || confirmOpen || !state.history.length) return;
+      /* a round lost on mistakes stays lost: with the count kept
+         at MAX_MISTAKES there is no stepping back into play — the
+         round restarts with the same arrangement instead */
+      if (endKind === "lose") return;
       let snapshot = state.history.pop();
       let wasOver = state.over;
       restoreSnapshot(snapshot);
@@ -537,12 +555,20 @@
       isInputBlocked: isInputBlocked,
       isSorted: function () { return sorted; },
       endKind: function () { return endKind; },
+      /* a Daily round that has been won — the day is completed.
+         The view keys two things off this one verdict: the end
+         overlay offers Continue (back to the calendar) instead of
+         New puzzle, and the top-left back arrow is hidden, since
+         Continue is the way onward from a finished day. A lost
+         Daily round is not completed, and neither is a practice
+         win (no daily key). */
+      isDailyWin: function () { return endKind === "win" && !!state && !!state.dailyKey; },
       roundId: function () { return roundId; },
       difficulty: function () { return state ? state.diff : null; },
       dailyKey: function () { return state ? state.dailyKey : null; },
       seconds: function () { return state ? state.seconds : 0; },
       formatTime: formatTime,
-      canUndo: function () { return !!(state && state.history.length && !state.paused); },
+      canUndo: function () { return !!(state && state.history.length && !state.paused && endKind !== "lose"); },
       wrongKeys: computeWrongKeys,
       filledCount: function () {
         if (!state) return 0;

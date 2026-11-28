@@ -11,8 +11,8 @@
 (function (global) {
   "use strict";
 
-  const VIEWS = { main: "viewMain", game: "viewGame", calendar: "viewCalendar" };
-  const ROUTES = { "": "main", "/": "main", "/game": "game", "/calendar": "calendar" };
+  const VIEWS = { main: "viewMain", game: "viewGame", calendar: "viewCalendar", tests: "viewTests" };
+  const ROUTES = { "": "main", "/": "main", "/game": "game", "/calendar": "calendar", "/tests": "tests" };
 
   let currentView = null;
   let gameBooted = false;
@@ -30,6 +30,17 @@
   }
 
   function showView(name) {
+    /* registration gate: entering the game or the calendar —
+       by menu card, browser history or a typed hash — requires
+       a registered name on this device. While none is saved,
+       main.js's gate opens the register popup on the menu and
+       the player stays there; saving a name resumes the trip
+       to the view they asked for. */
+    if ((name === "game" || name === "calendar") && global.MC && global.MC.requireRegistration &&
+        global.MC.requireRegistration(name === "game" ? { type: "practice" } : { type: "calendar" })) {
+      if (global.location.hash !== "#/") global.location.hash = "#/";
+      name = "main";
+    }
     if (currentView === "game" && name !== "game" && gameBooted) pauseGameIfRunning();
     currentView = name;
     Object.keys(VIEWS).forEach(function (key) {
@@ -37,6 +48,7 @@
       if (section) section.classList.toggle("hidden", key !== name);
     });
     if (name === "calendar" && global.MC && global.MC.showCalendar) global.MC.showCalendar();
+    if (name === "tests" && global.MC && global.MC.showTests) global.MC.showTests();
     if (name === "game") {
       if (!gameBooted) {
         gameBooted = true;

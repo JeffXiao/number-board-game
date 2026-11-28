@@ -29,6 +29,7 @@
     endSolution: element("endSolution"),
     retry: element("retryBtn"),
     again: element("againBtn"),
+    continueBtn: element("continueBtn"),
     gameBack: element("gameBackLink"),
     pause: element("pauseBtn"),
     sort: element("sortBtn"),
@@ -79,6 +80,33 @@
     game.newGame(difficulty);
   });
   elements.retry.addEventListener("click", function () { game.restartSame(); });
+  /* Continue shows only on a completed Daily round (view.js
+     drives its visibility off game.isDailyWin()): the day is
+     done, so it takes the player back to the calendar — the
+     hash route in the app shell, the sibling page standalone.
+     It replaces the top-left back arrow there, which the view
+     hides in the same state. The calendar does not just open
+     anywhere: the completed day is today, so it lands on the
+     previous date that has not been practiced yet — the
+     nearest earlier unfinished day
+     (MC.Daily.previousUnfinishedKey) — on that date's month,
+     with the date highlighted, so the player can tap it next
+     and keep working backwards through missed days. (A plain
+     opening points at today itself while today is unfinished
+     — MC.Daily.nextDateToPlay — so the calendar never shows
+     two highlighted dates.) When no earlier day is left
+     unfinished, no target is named and the calendar opens on
+     the current month, as usual. */
+  element("continueBtn").addEventListener("click", function () {
+    let completedKey = game.dailyKey();
+    let target = (MC.Daily && completedKey) ? MC.Daily.previousUnfinishedKey(completedKey) : null;
+    if (element("viewMain")) {
+      if (target && MC.setCalendarTarget) MC.setCalendarTarget(target);
+      global.location.hash = "#/calendar";
+    } else {
+      global.location.href = "calendar.html" + (target ? "?focus=" + encodeURIComponent(target) : "");
+    }
+  });
 
   /* ---------- reset confirmation ----------
      Tapping the reset icon never restarts the round at once: it
@@ -190,6 +218,12 @@
   if (menuMainDescEl) menuMainDescEl.textContent = i18n.translate("menuMainDesc");
   let menuListEl = element("menuList");
   if (menuListEl) menuListEl.setAttribute("aria-label", i18n.translate("menuChoose"));
+  let testsLinkEl = element("testsLink");
+  if (testsLinkEl) testsLinkEl.textContent = i18n.translate("testsLink");
+  let testsTitleEl = element("testsTitle");
+  if (testsTitleEl) testsTitleEl.textContent = i18n.translate("testsTitle");
+  let testsRunEl = element("testsRunBtn");
+  if (testsRunEl) testsRunEl.textContent = i18n.translate("testsRun");
   document.querySelectorAll("#langMenu button").forEach(function (button) {
     button.setAttribute("aria-checked", button.dataset.lang === i18n.language() ? "true" : "false");
   });
@@ -267,16 +301,71 @@
     let btn = element("registerBtn");
     if (btn) btn.focus();
   }
+  /* ---------- the registration gate ----------
+     Playing requires a registered name on this device. While
+     no name is registered, tapping Daily or Practice (a menu
+     card, a calendar date, or a direct route into either view)
+     does not enter the mode: the register popup opens instead
+     and the intended destination waits in pendingDestination.
+     Saving a name in that popup carries on to the destination
+     (proceedToDestination, called from the submit handler);
+     cancelling — button, backdrop or Escape — drops the
+     destination and the player stays on the menu, still unable
+     to enter a mode until a name is saved. Once any name is
+     registered the gate lets every tap straight through. */
+  let pendingDestination = null;
+  function isRegistered() {
+    return !!(MC.Player && MC.Player.list().length > 0);
+  }
+  /* returns true when the tap was blocked (popup opened) and
+     false when the player is registered and may proceed */
+  function requireRegistration(destination) {
+    if (isRegistered()) return false;
+    pendingDestination = destination || null;
+    openRegister();
+    return true;
+  }
+  function proceedToDestination(destination) {
+    if (!destination) return;
+    if (destination.type === "calendar") {
+      global.location.hash = "#/calendar";
+    } else if (destination.type === "practice") {
+      MC.playPractice();
+      if (global.location.hash !== "#/game") global.location.hash = "#/game";
+    } else if (destination.type === "daily" && destination.key) {
+      MC.playDaily(destination.key);
+    }
+  }
+  function cancelRegister() {
+    pendingDestination = null;
+    closeRegister();
+  }
+  MC.isRegistered = isRegistered;
+  MC.requireRegistration = requireRegistration;
+  /* exposed for the unit tests (assets/js/tests.js), which pin
+     the gate's verdict against the real registry */
+  MC.RegistrationGate = Object.freeze({
+    isRegistered: isRegistered,
+    requireRegistration: requireRegistration,
+    pendingDestination: function () {
+      return pendingDestination ? Object.assign({}, pendingDestination) : null;
+    }
+  });
   let registerBtn = element("registerBtn");
-  if (registerBtn) registerBtn.addEventListener("click", openRegister);
+  if (registerBtn) registerBtn.addEventListener("click", function () {
+    /* a plain Register tap has no destination behind it: saving
+       a name here just closes the popup */
+    pendingDestination = null;
+    openRegister();
+  });
   let registerCancelBtn = element("registerCancelBtn");
-  if (registerCancelBtn) registerCancelBtn.addEventListener("click", closeRegister);
+  if (registerCancelBtn) registerCancelBtn.addEventListener("click", cancelRegister);
   if (registerOverlay) registerOverlay.addEventListener("click", function (event) {
     /* a tap on the dimmed backdrop (not the dialog itself) closes */
-    if (event.target === registerOverlay) closeRegister();
+    if (event.target === registerOverlay) cancelRegister();
   });
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) closeRegister();
+    if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) cancelRegister();
   });
   if (playerNameInput) playerNameInput.addEventListener("input", clearRegisterError);
   if (registerForm) registerForm.addEventListener("submit", function (event) {
@@ -300,8 +389,14 @@
       showRegisterError(i18n.translate("registerTaken"));
       return;
     }
+    /* a name is saved: when this popup was the gate in front of
+       a Daily or Practice tap, carry on to where the player was
+       headed; a plain Register-button save just closes */
+    let destination = pendingDestination;
+    pendingDestination = null;
     closeRegister();
     renderRegister();
+    proceedToDestination(destination);
   });
   /* a language switch re-labels the button, the popup and the
      registered-names list in place — view.applyLanguage calls
@@ -339,6 +434,13 @@
     game.newGame(difficulty, key);
   }
   MC.playDaily = function (key) {
+    /* an unregistered player tapping a calendar date is sent
+       back to the menu's register popup first; the date waits
+       as the destination and is dealt once a name is saved */
+    if (MC.requireRegistration({ type: "daily", key: key })) {
+      if (global.location.hash !== "#/") global.location.hash = "#/";
+      return;
+    }
     if (!MC.Daily || !MC.Daily.isPlayable(key)) return;
     pendingDailyKey = key;
     if (global.location.hash === "#/game") startPendingDaily();
@@ -364,7 +466,20 @@
      its tap to MC.playPractice (its "#/game" href then opens the
      game view, and nav.js hands over to MC.enterGameView) */
   let mainCard = document.querySelector('.menu-card[href="#/game"]');
-  if (mainCard) mainCard.addEventListener("click", function () { MC.playPractice(); });
+  if (mainCard) mainCard.addEventListener("click", function (event) {
+    /* unregistered: the register popup gates Practice — no
+       name, no game. The tap goes nowhere until a name is
+       saved, then proceedToDestination deals the practice round */
+    if (MC.requireRegistration({ type: "practice" })) { event.preventDefault(); return; }
+    MC.playPractice();
+  });
+  /* the Daily card is gated the same way: an unregistered tap
+     opens the register popup instead of the calendar, and
+     saving a name continues on to the calendar */
+  let dailyCard = document.querySelector('.menu-card[href="#/calendar"]');
+  if (dailyCard) dailyCard.addEventListener("click", function (event) {
+    if (MC.requireRegistration({ type: "calendar" })) event.preventDefault();
+  });
 
   /* ---------- start ----------
      In the app shell (index.html) the game sits behind the main

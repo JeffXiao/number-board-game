@@ -8,7 +8,7 @@
     <title>Math Crossword</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/game.css" />
     <link rel="stylesheet" href="css/home.css" />
   </head>
@@ -45,7 +45,7 @@
         </header>
 
         <nav class="menu-list" id="menuList" aria-label="Choose a mode">
-          <a class="menu-card" href="calendar.html">
+          <a class="menu-card" id="menuDailyCard" href="calendar.html">
             <span class="menu-icon daily">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#calendar"></use></svg>
             </span>
@@ -56,7 +56,7 @@
             <svg class="menu-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#back"></use></svg>
           </a>
 
-          <a class="menu-card" href="game.html">
+          <a class="menu-card" id="menuMainCard" href="game.html">
             <span class="menu-icon main">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#grid"></use></svg>
             </span>
@@ -158,7 +158,11 @@
          is registered the user is recognized, so the button hides
          and only the names list below remains. A name that is
          already registered shows its error inside the popup and
-         is not saved. */
+         is not saved. The registration gate (mirrors main.js):
+         playing requires a registered name, so an unregistered
+         tap on a Daily / Practice card opens this popup instead
+         and the destination waits in pendingDestination; saving
+         a name carries on there, cancelling drops it. */
       var registerOverlay = element("registerOverlay");
       var registerForm = element("registerForm");
       var playerNameInput = element("playerNameInput");
@@ -213,15 +217,42 @@
         var btn = element("registerBtn");
         if (btn) btn.focus();
       }
+      /* ---------- the registration gate (mirrors main.js) ---------- */
+      var pendingDestination = null;
+      function isRegistered() {
+        return !!(MC.Player && MC.Player.list().length > 0);
+      }
+      /* returns true when the tap was blocked (popup opened) and
+         false when the player is registered and may proceed */
+      function requireRegistration(destination) {
+        if (isRegistered()) return false;
+        pendingDestination = destination || null;
+        openRegister();
+        return true;
+      }
+      function proceedToDestination(destination) {
+        if (!destination) return;
+        if (destination.type === "calendar") global.location.href = "calendar.html";
+        else if (destination.type === "practice") global.location.href = "game.html";
+      }
+      function cancelRegister() {
+        pendingDestination = null;
+        closeRegister();
+      }
       var registerBtn = element("registerBtn");
-      if (registerBtn) registerBtn.addEventListener("click", openRegister);
+      if (registerBtn) registerBtn.addEventListener("click", function () {
+        /* a plain Register tap has no destination behind it:
+           saving a name here just closes the popup */
+        pendingDestination = null;
+        openRegister();
+      });
       var registerCancelBtn = element("registerCancelBtn");
-      if (registerCancelBtn) registerCancelBtn.addEventListener("click", closeRegister);
+      if (registerCancelBtn) registerCancelBtn.addEventListener("click", cancelRegister);
       if (registerOverlay) registerOverlay.addEventListener("click", function (event) {
-        if (event.target === registerOverlay) closeRegister();
+        if (event.target === registerOverlay) cancelRegister();
       });
       document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) closeRegister();
+        if (event.key === "Escape" && registerOverlay && registerOverlay.classList.contains("show")) cancelRegister();
       });
       if (playerNameInput) playerNameInput.addEventListener("input", clearRegisterError);
       if (registerForm) registerForm.addEventListener("submit", function (event) {
@@ -243,8 +274,27 @@
           showRegisterError(i18n.translate("registerTaken"));
           return;
         }
+        /* a name is saved: when this popup was the gate in front
+           of a Daily or Practice tap, carry on to where the
+           player was headed; a plain Register-button save just
+           closes */
+        var destination = pendingDestination;
+        pendingDestination = null;
         closeRegister();
         renderRegister();
+        proceedToDestination(destination);
+      });
+      /* the menu cards are gated the same way as in the shell:
+         an unregistered tap opens the register popup instead of
+         following the card's link, and saving a name continues
+         on to the calendar / game page */
+      var dailyCard = element("menuDailyCard");
+      if (dailyCard) dailyCard.addEventListener("click", function (event) {
+        if (requireRegistration({ type: "calendar" })) event.preventDefault();
+      });
+      var mainCard = element("menuMainCard");
+      if (mainCard) mainCard.addEventListener("click", function (event) {
+        if (requireRegistration({ type: "practice" })) event.preventDefault();
       });
       function closeLangMenu() {
         langMenu.classList.remove("show");
